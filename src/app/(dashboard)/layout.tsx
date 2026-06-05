@@ -23,9 +23,11 @@ export default async function DashboardLayout({
     .order('name')) as { data: Pick<PrvClient, 'id' | 'name' | 'slug'>[] | null }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen" style={{ background: '#0a0804' }}>
       <Sidebar clients={clients ?? []} />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto" style={{ background: 'linear-gradient(135deg, #0c0a07 0%, #110d08 100%)' }}>
+        {children}
+      </main>
     </div>
   )
 }
