@@ -1,7 +1,7 @@
 # Tasks — tdgames_preview
 
 ## Doing
-- [ ] P5: Deploy — Docker + nginx on vps6core
+(none — all phases complete ✅)
 
 ## Done
 - [x] Design spec — `docs/superpowers/specs/2026-06-05-preview-app-design.md`
@@ -17,6 +17,14 @@
   - [x] Task 5: Middleware — Route Protection + getRedirectPath (9 tests)
   - [x] Task 6: Stub Pages + Layouts (dashboard, portal, share)
   - [x] Task 7: Full Test Run (11/11 pass) + Build clean
+- [x] P5: Deploy — COMPLETE
+  - [x] PM2 ecosystem.config.js (port 3001)
+  - [x] scripts/deploy-vps.sh (redeploy helper)
+  - [x] VPS: clone → .env.production → npm build → pm2 start
+  - [x] nginx proxy preview.tdgamestudio.com → 127.0.0.1:3001
+  - [x] PM2 startup on reboot
+  - [ ] Supabase migration apply (cần làm thủ công qua Dashboard)
+  - [ ] Tạo tài khoản internal đầu tiên trên Supabase Auth
 - [x] P4: Client Portal + Share — COMPLETE
   - [x] Task 1: Portal layout — header với display_name + logout
   - [x] Task 2: Portal projects list — grid dự án của client

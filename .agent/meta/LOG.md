@@ -16,6 +16,18 @@
   - Task 7: 11/11 tests pass, `npm run build` clean, sẵn sàng apply migration lên Supabase
 - Ghi chú: Migration SQL cần apply thủ công qua Supabase Dashboard hoặc CLI
 
+## 2026-06-05 (P5)
+- Triển khai hoàn tất P5: Deploy lên vps6core
+  - Quyết định dùng PM2 thay Docker (disk VPS 76% đầy, PM2 đã có sẵn, Node 22 tương thích)
+  - Tạo `ecosystem.config.js` — PM2 config, port 3001
+  - Tạo `scripts/deploy-vps.sh` — one-command redeploy từ local
+  - VPS: clone repo → tạo .env.production → npm ci → npm run build → pm2 start
+  - nginx config `preview.tdgamestudio.com` → proxy 127.0.0.1:3001, reload thành công
+  - DNS qua Cloudflare proxy (orange cloud) — Cloudflare xử lý HTTPS
+  - App live tại http://preview.tdgamestudio.com (HTTP 200 ✅)
+  - PM2 startup configured (tự restart khi VPS reboot)
+  - Còn cần: apply Supabase migration + tạo tài khoản internal đầu tiên
+
 ## 2026-06-05 (P4)
 - Triển khai hoàn tất P4: Client Portal + Share
   - Task 1: Portal layout — header display_name + logout button
