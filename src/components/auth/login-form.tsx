@@ -29,8 +29,8 @@ export function LoginForm({ monoFont }: LoginFormProps) {
       return
     }
 
-    router.push('/')
-    router.refresh()
+    // Hard redirect — forces full page reload so middleware sees fresh session cookie
+    window.location.href = '/'
   }
 
   return (
