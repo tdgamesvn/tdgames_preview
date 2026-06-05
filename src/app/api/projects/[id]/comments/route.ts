@@ -6,7 +6,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = (await createClient()) as any
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -24,7 +24,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = (await createClient()) as any
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -32,7 +32,7 @@ export async function POST(
   const { content, asset_id } = body as { content?: string; asset_id?: string | null }
   if (!content?.trim()) return NextResponse.json({ error: 'content is required' }, { status: 400 })
 
-  const admin = createAdminClient() as any
+  const admin = createAdminClient() as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await admin
     .from('Prv_comments')
     .insert({

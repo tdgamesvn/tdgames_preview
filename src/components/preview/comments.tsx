@@ -41,14 +41,14 @@ export function Comments({ projectId, assetId = null }: CommentsProps) {
     const channel = supabase
       .channel(`comments:${projectId}`)
       .on(
-        'postgres_changes' as any,
+        'postgres_changes' as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         {
           event: 'INSERT',
           schema: 'public',
           table: 'Prv_comments',
           filter: `project_id=eq.${projectId}`,
         },
-        (payload: any) => {
+        (payload: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
           const newComment = payload.new as Comment
           const matches = assetId
             ? newComment.asset_id === assetId

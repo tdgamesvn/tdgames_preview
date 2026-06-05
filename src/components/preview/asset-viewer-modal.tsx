@@ -109,8 +109,8 @@ export function AssetViewerModal({
             <SpinePlayer
               skeletonUrl={presignedUrl}
               atlasUrl={presignedUrl.replace(/\.[^.]+$/, '.atlas')}
-              animations={(asset.metadata as any)?.animations ?? []}
-              skins={(asset.metadata as any)?.skins ?? ['default']}
+              animations={(asset.metadata as any)?.animations ?? []} // eslint-disable-line @typescript-eslint/no-explicit-any
+              skins={(asset.metadata as any)?.skins ?? ['default']} // eslint-disable-line @typescript-eslint/no-explicit-any
               spineVersion={spineVersion}
               assetName={asset.name}
               onDownload={() => handleDownload(asset.id)}

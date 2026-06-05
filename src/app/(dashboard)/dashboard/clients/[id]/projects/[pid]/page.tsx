@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AssetGrid } from '@/components/dashboard/asset-grid'
 import { ProjectSettingsForm } from '@/components/dashboard/project-settings-form'
+import { Comments } from '@/components/preview/comments'
 import { Badge } from '@/components/ui/badge'
 import type { PrvProject, PrvClient } from '@/lib/types/database'
 
@@ -49,19 +50,31 @@ export default async function ProjectDetailPage({
           <TabsTrigger value="art">Art</TabsTrigger>
           <TabsTrigger value="animation">Animation</TabsTrigger>
           <TabsTrigger value="vfx">VFX</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="art">
-          <AssetGrid projectId={project.id} serviceType="art" />
+          <AssetGrid projectId={project.id} serviceType="art" spineVersion={null} />
         </TabsContent>
 
         <TabsContent value="animation">
-          <AssetGrid projectId={project.id} serviceType="animation" />
+          <AssetGrid
+            projectId={project.id}
+            serviceType="animation"
+            spineVersion={project.spine_version}
+          />
         </TabsContent>
 
         <TabsContent value="vfx">
-          <AssetGrid projectId={project.id} serviceType="vfx" />
+          <AssetGrid projectId={project.id} serviceType="vfx" spineVersion={null} />
+        </TabsContent>
+
+        <TabsContent value="comments">
+          <div className="max-w-2xl">
+            <h2 className="text-lg font-semibold mb-4">Project Comments</h2>
+            <Comments projectId={project.id} />
+          </div>
         </TabsContent>
 
         <TabsContent value="settings">
