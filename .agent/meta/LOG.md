@@ -15,3 +15,34 @@
   - Task 6: Stub pages — /(dashboard)/dashboard, /(portal)/portal, /share/[token]
   - Task 7: 11/11 tests pass, `npm run build` clean, sẵn sàng apply migration lên Supabase
 - Ghi chú: Migration SQL cần apply thủ công qua Supabase Dashboard hoặc CLI
+
+## 2026-06-05 (P3)
+- Triển khai hoàn tất P3: Asset Preview System
+  - Task 1: Download API route — presigned GET URL từ R2 (3 tests)
+  - Task 2: Comments API route — GET list + POST create với admin client (4 tests)
+  - Task 3: ImageLightbox — fullscreen Art preview, keyboard nav (←/→/Esc), thumbnail strip
+  - Task 4: VfxViewer — GIF `<img>`, MP4/WebM `<video>`, Unity package icon + download
+  - Task 5: SpinePlayer — dynamic CDN load by version, animation/skin controls
+  - Task 6: AssetViewerModal — unified modal, route sang lightbox/spine/vfx theo service_type
+  - Task 7: Comments component — initial load + Supabase Realtime INSERT subscription
+  - Task 8: AssetGridClient (click card → mở modal) + Comments tab trong project detail
+  - Fix ESLint errors (no-explicit-any, no-unused-vars) để build pass
+  - 38/38 tests pass, build clean
+
+## 2026-06-05 (P2 + P3 planning)
+- Triển khai hoàn tất P2: Internal Dashboard
+  - Sửa Jest setup: undici → Node 26 native fetch, @jest-environment node cho API tests
+  - Sửa @base-ui/react moduleNameMapper + cài class-variance-authority
+  - Task 1-6: R2 client, admin client, client/project CRUD actions, presign + asset API routes
+  - Task 7-10: Sidebar nav, dashboard layout, clients pages, project detail tabs, asset grid + upload, overview page
+  - Fix Supabase v2.107 type inference (as any casts), shadcn Dialog API (controlled state), Select onValueChange
+  - 31/31 tests pass, build clean, pushed to GitHub
+- Viết P3 implementation plan: `docs/superpowers/plans/2026-06-05-p3-asset-preview.md`
+  - Task 1: Download API (presigned GET URL)
+  - Task 2: Comments API (GET + POST, admin client)
+  - Task 3: ImageLightbox (Art preview, keyboard nav, thumbnail strip)
+  - Task 4: VfxViewer (GIF/video/Unity package)
+  - Task 5: SpinePlayer (dynamic CDN load by version, animation/skin controls)
+  - Task 6: AssetViewerModal (unified — routes to correct viewer by service_type)
+  - Task 7: Comments component (Supabase Realtime subscription)
+  - Task 8: Wire dashboard — AssetGridClient (clickable cards) + Comments tab
