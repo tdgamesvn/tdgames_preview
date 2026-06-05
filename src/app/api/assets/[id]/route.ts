@@ -7,10 +7,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: profile } = await supabase
@@ -21,9 +19,8 @@ export async function DELETE(
   if (profile?.role !== 'internal')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const admin = createAdminClient()
+  const admin = createAdminClient() as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  // Fetch asset to get r2_key before deleting
   const { data: asset, error: fetchError } = await admin
     .from('Prv_assets')
     .select('id, r2_key')
@@ -33,10 +30,7 @@ export async function DELETE(
   if (fetchError || !asset)
     return NextResponse.json({ error: 'Asset not found' }, { status: 404 })
 
-  // Delete from R2 (best-effort — don't block on R2 failure)
-  try {
-    await deleteR2Object(asset.r2_key)
-  } catch (_) {}
+  try { await deleteR2Object(asset.r2_key) } catch { /* best-effort */ }
 
   const { error } = await admin.from('Prv_assets').delete().eq('id', params.id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

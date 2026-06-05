@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     .from('Prv_profiles')
     .select('role')
     .eq('id', user.id)
-    .single()
+    .single() as unknown as { data: { role: string } | null }
   if (profile?.role !== 'internal')
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const admin = createAdminClient()
+  const admin = createAdminClient() as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await admin
     .from('Prv_assets')
     .insert({ project_id, service_type, name, r2_key, file_type, metadata: metadata ?? {} })

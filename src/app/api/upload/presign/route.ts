@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPresignedPutUrl } from '@/lib/r2'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

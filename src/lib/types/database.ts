@@ -52,14 +52,26 @@ export interface PrvComment {
   created_at: string
 }
 
+type TableDef<Row, Insert, Update> = {
+  Row: Row
+  Insert: Insert
+  Update: Update
+  Relationships: []
+}
+
+// Full Supabase v2 Database schema format (required for type inference in v2.40+)
 export interface Database {
   public: {
     Tables: {
-      Prv_profiles: { Row: PrvProfile; Insert: Omit<PrvProfile, 'created_at'>; Update: Partial<PrvProfile> }
-      Prv_clients: { Row: PrvClient; Insert: Omit<PrvClient, 'id' | 'created_at'>; Update: Partial<PrvClient> }
-      Prv_projects: { Row: PrvProject; Insert: Omit<PrvProject, 'id' | 'created_at'>; Update: Partial<PrvProject> }
-      Prv_assets: { Row: PrvAsset; Insert: Omit<PrvAsset, 'id' | 'created_at'>; Update: Partial<PrvAsset> }
-      Prv_comments: { Row: PrvComment; Insert: Omit<PrvComment, 'id' | 'created_at'>; Update: Partial<PrvComment> }
+      Prv_profiles: TableDef<PrvProfile, Omit<PrvProfile, 'created_at'>, Partial<PrvProfile>>
+      Prv_clients: TableDef<PrvClient, Omit<PrvClient, 'id' | 'created_at'>, Partial<PrvClient>>
+      Prv_projects: TableDef<PrvProject, Omit<PrvProject, 'id' | 'created_at'>, Partial<PrvProject>>
+      Prv_assets: TableDef<PrvAsset, Omit<PrvAsset, 'id' | 'created_at'>, Partial<PrvAsset>>
+      Prv_comments: TableDef<PrvComment, Omit<PrvComment, 'id' | 'created_at'>, Partial<PrvComment>>
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

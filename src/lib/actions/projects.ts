@@ -12,7 +12,7 @@ export async function createProject(input: {
   description?: string | null
   spine_version?: string | null
 }): Promise<ActionResult<PrvProject>> {
-  const supabase = await createClient()
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from('Prv_projects')
     .insert({
@@ -32,7 +32,7 @@ export async function updateProject(
   id: string,
   input: Partial<Pick<PrvProject, 'name' | 'description' | 'status' | 'spine_version' | 'share_enabled'>>
 ): Promise<ActionResult<PrvProject>> {
-  const supabase = await createClient()
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from('Prv_projects')
     .update(input)
@@ -45,11 +45,8 @@ export async function updateProject(
 }
 
 export async function deleteProject(id: string, clientId: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('Prv_projects')
-    .delete()
-    .eq('id', id)
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.from('Prv_projects').delete().eq('id', id)
   if (error) return { data: null, error: error.message }
   revalidatePath(`/dashboard/clients/${clientId}`)
   return { data: null, error: null }
