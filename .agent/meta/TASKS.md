@@ -1,7 +1,6 @@
 # Tasks — tdgames_preview
 
 ## Doing
-- [ ] P4: Client Portal + Share — client view, comments, public share
 - [ ] P5: Deploy — Docker + nginx on vps6core
 
 ## Done
@@ -18,6 +17,14 @@
   - [x] Task 5: Middleware — Route Protection + getRedirectPath (9 tests)
   - [x] Task 6: Stub Pages + Layouts (dashboard, portal, share)
   - [x] Task 7: Full Test Run (11/11 pass) + Build clean
+- [x] P4: Client Portal + Share — COMPLETE
+  - [x] Task 1: Portal layout — header với display_name + logout
+  - [x] Task 2: Portal projects list — grid dự án của client
+  - [x] Task 3: AssetGridClient readonly prop — ẩn delete cho portal/share
+  - [x] Task 4: AssetViewerModal — dùng presignedUrl trực tiếp cho download
+  - [x] Task 5: Portal project detail — tabs Art/Animation/VFX/Comments (read-only)
+  - [x] Task 6: Public share page — admin client + presigned URLs server-side, 404 nếu disabled
+  - [x] Task 7: 38/38 tests pass, build clean, pushed to GitHub
 - [x] P3: Asset Preview System — COMPLETE
   - [x] Task 1: Download API — GET presigned URL từ R2 (3 tests)
   - [x] Task 2: Comments API — GET list + POST create (4 tests)

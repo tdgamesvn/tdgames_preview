@@ -16,6 +16,16 @@
   - Task 7: 11/11 tests pass, `npm run build` clean, sẵn sàng apply migration lên Supabase
 - Ghi chú: Migration SQL cần apply thủ công qua Supabase Dashboard hoặc CLI
 
+## 2026-06-05 (P4)
+- Triển khai hoàn tất P4: Client Portal + Share
+  - Task 1: Portal layout — header display_name + logout button
+  - Task 2: Portal projects list — grid dự án active của client (filter theo client_id)
+  - Task 3: AssetGridClient `readonly` prop — ẩn nút Delete cho portal và share
+  - Task 4: AssetViewerModal — download dùng presignedUrl trực tiếp khi có sẵn (không cần API auth)
+  - Task 5: Portal project detail `/portal/[pid]` — tabs Art/Animation/VFX/Comments, read-only, ownership check
+  - Task 6: Public share page `/share/[token]` — admin client bypass RLS, presigned URLs server-side, 404 nếu share_enabled=false
+  - 38/38 tests pass, build clean, pushed to GitHub
+
 ## 2026-06-05 (P3)
 - Triển khai hoàn tất P3: Asset Preview System
   - Task 1: Download API route — presigned GET URL từ R2 (3 tests)
