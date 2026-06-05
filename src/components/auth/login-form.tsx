@@ -19,7 +19,7 @@ export function LoginForm({ monoFont }: LoginFormProps) {
     setError(null)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
@@ -27,12 +27,16 @@ export function LoginForm({ monoFont }: LoginFormProps) {
       return
     }
 
-    // Get role from server to redirect to correct page directly
+    // Query role directly from client (session is set, RLS allows reading own profile)
     try {
-      const res = await fetch('/api/debug/auth')
-      const data = await res.json()
-      const role = data?.profile?.role
-      window.location.href = role === 'internal' ? '/dashboard' : '/portal'
+      const userId = authData.user?.id
+      const { data: profile } = await supabase
+        .from('Prv_profiles')
+        .select('role')
+        .eq('id', userId!)
+        .single() as { data: { role: string } | null }
+
+      window.location.href = profile?.role === 'internal' ? '/dashboard' : '/portal'
     } catch {
       window.location.href = '/dashboard'
     }
