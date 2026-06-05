@@ -27,8 +27,15 @@ export function LoginForm({ monoFont }: LoginFormProps) {
       return
     }
 
-    // Hard redirect — forces full page reload so middleware sees fresh session cookie
-    window.location.href = '/'
+    // Get role from server to redirect to correct page directly
+    try {
+      const res = await fetch('/api/debug/auth')
+      const data = await res.json()
+      const role = data?.profile?.role
+      window.location.href = role === 'internal' ? '/dashboard' : '/portal'
+    } catch {
+      window.location.href = '/dashboard'
+    }
   }
 
   return (
