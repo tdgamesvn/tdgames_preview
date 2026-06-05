@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
       .from('Prv_profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .single() as { data: { role: UserRole } | null; error: unknown }
     role = profile?.role ?? null
   }
 
