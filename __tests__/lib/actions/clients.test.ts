@@ -48,6 +48,7 @@ describe('createClient', () => {
       logo_url: null,
     })
     expect(result.error).toBeNull()
+    expect(result.data).toEqual({ id: 'c1', name: 'Test', slug: 'test' })
   })
 
   it('returns error when insert fails', async () => {
@@ -63,6 +64,15 @@ describe('createClient', () => {
     mockInsert.mockReturnValue(chain)
     const result = await createClient({ name: 'Acme', slug: 'acme' })
     expect(result.error).toBe('duplicate slug')
+  })
+
+  it('passes logo_url when provided', async () => {
+    await createClient({ name: 'Acme', slug: 'acme', logo_url: 'https://example.com/logo.png' })
+    expect(mockInsert).toHaveBeenCalledWith({
+      name: 'Acme',
+      slug: 'acme',
+      logo_url: 'https://example.com/logo.png',
+    })
   })
 })
 
