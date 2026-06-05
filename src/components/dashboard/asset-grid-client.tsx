@@ -10,6 +10,7 @@ interface AssetGridClientProps {
   serviceType: ServiceType
   spineVersion?: string | null
   projectId: string
+  readonly?: boolean
 }
 
 const typeIcon = (t: ServiceType) =>
@@ -20,6 +21,7 @@ export function AssetGridClient({
   serviceType,
   spineVersion,
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  readonly = false,
 }: AssetGridClientProps) {
   const [viewingAsset, setViewingAsset] = useState<PrvAsset | null>(null)
 
@@ -49,21 +51,23 @@ export function AssetGridClient({
               </p>
               <p className="text-xs text-gray-400 uppercase">{asset.file_type}</p>
             </div>
-            <div className="px-3 pb-3 opacity-0 group-hover:opacity-100 transition-opacity">
-              <form
-                action={`/api/assets/${asset.id}`}
-                method="DELETE"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-500 w-full text-xs"
+            {!readonly && (
+              <div className="px-3 pb-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <form
+                  action={`/api/assets/${asset.id}`}
+                  method="DELETE"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  Delete
-                </Button>
-              </form>
-            </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 w-full text-xs"
+                  >
+                    Delete
+                  </Button>
+                </form>
+              </div>
+            )}
           </div>
         ))}
       </div>
