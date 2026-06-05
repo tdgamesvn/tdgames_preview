@@ -1,7 +1,7 @@
-// This page is never rendered directly — middleware redirects / to /dashboard or /portal.
-// If somehow reached, redirect to login as a safety fallback.
-import { redirect } from 'next/navigation'
+// Middleware handles role-based redirect (/ → /dashboard or /portal).
+// This page renders only if middleware passes through (shouldn't normally happen).
+export const dynamic = 'force-dynamic'
 
 export default function RootPage() {
-  redirect('/login')
+  return null
 }
