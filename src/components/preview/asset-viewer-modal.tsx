@@ -57,10 +57,12 @@ export function AssetViewerModal({
   }, [asset.service_type, allArtAssets])
 
   async function handleDownload(assetId: string) {
-    const url = await fetchDownloadUrl(assetId)
+    // Use pre-set presigned URL if available (share page), otherwise fetch from API
+    const targetAsset = assetId === asset.id ? asset : allArtAssets.find((x) => x.id === assetId)
+    const url = targetAsset?.presignedUrl ?? artUrls[assetId] ?? await fetchDownloadUrl(assetId)
     const a = document.createElement('a')
     a.href = url
-    a.download = assetId === asset.id ? asset.name : (allArtAssets.find((x) => x.id === assetId)?.name ?? assetId)
+    a.download = targetAsset?.name ?? assetId
     a.click()
   }
 
