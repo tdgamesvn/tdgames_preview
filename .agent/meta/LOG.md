@@ -1,5 +1,9 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Animation tab — hiển thị Spine player inline thay vì 3 file)
+- Theo yêu cầu user: tab Animation không liệt kê json/png/atlas nữa mà **render Spine player chạy luôn** (controls animation/skin built-in). `AssetGridClient` gom file theo base name → mỗi set có .json = 1 player (proxy URL `/api/spine/<taskId>/<name>`). File nguồn gom vào `<details>` "Source files" thu gọn (download + delete vẫn dùng được cho nội bộ). Áp dụng cả dashboard + portal.
+- Commit `be7b549`. Deploy success (VPS=be7b549). Typecheck + lint sạch.
+
 ## 2026-06-07 (Spine preview — fix tận gốc + skin/animation runtime)
 - **Bug gốc:** Spine chưa từng render với asset upload vì (a) URL atlas hardcode `skeleton.atlas` không tồn tại, (b) texture .png không resolve được do atlas presigned + key có prefix timestamp, (c) metadata rỗng → không có danh sách animation/skin.
 - **Fix:** thêm proxy route `/api/spine/[taskId]/[name]` stream file Spine từ R2 trên path sạch ổn định → json↔atlas↔png tự liên kết. Đọc animations + skins TỪ skeleton lúc runtime (spine-player `success` callback / built-in controls). Thêm dropdown Skin + cột `avatar_skin` (migration). `getR2Object` trong r2.ts.
