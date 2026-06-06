@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 interface SpinePlayerProps {
   skeletonUrl: string
   atlasUrl: string
-  animations: string[]
-  skins: string[]
+  /** Optional — spine-player's built-in controls let the user switch these at runtime. */
+  animations?: string[]
+  skins?: string[]
   spineVersion: string
   assetName: string
   onDownload: () => void
@@ -75,8 +76,10 @@ export function SpinePlayer({
         new SpinePlayerClass(containerRef.current, {
           jsonUrl: skeletonUrl,
           atlasUrl,
-          animation: animations[0] ?? 'idle',
-          skin: skins[0] ?? 'default',
+          // Omit when unknown → player auto-selects the first animation/skin;
+          // its built-in controls (showControls) let the user switch.
+          animation: animations?.[0] || undefined,
+          skin: skins?.[0] || undefined,
           showControls: true,
           backgroundColor: '#1a1a2e',
           premultipliedAlpha: true,
@@ -116,7 +119,9 @@ export function SpinePlayer({
       )}
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
-          Spine v{spineVersion} · {animations.length} animations · {skins.length} skins
+          Spine v{spineVersion}
+          {animations && animations.length > 0 && ` · ${animations.length} animations`}
+          {skins && skins.length > 0 && ` · ${skins.length} skins`}
         </div>
         <Button onClick={onDownload} variant="outline" size="sm" className="gap-2">
           <Download size={14} />

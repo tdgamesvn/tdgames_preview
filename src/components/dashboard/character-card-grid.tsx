@@ -47,32 +47,22 @@ export async function CharacterCardGrid({ tasks, project, linkPrefix }: Characte
         artUrl = await getPresignedGetUrl(firstArt.r2_key).catch(() => undefined)
       }
 
-      // Spine config
+      // Spine config — serve via the /api/spine proxy so the texture (.png)
+      // resolves relative to the atlas (presigned URLs break that). The atlas
+      // file is named "<base>.atlas" alongside the json "<base>.json".
       let spineConfig: SpineCardConfig | undefined
       const spineAsset = spineResult.data
       if (spineAsset && project.spine_version && task.avatar_asset_id) {
-        // Derive atlas key from the json key (same directory, .atlas extension)
-        const dir = spineAsset.r2_key.replace(/\/[^/]+$/, '')
-        const atlasKey = `${dir}/skeleton.atlas`
-
-        const [jsonUrl, atlasUrl] = await Promise.all([
-          getPresignedGetUrl(spineAsset.r2_key).catch(() => ''),
-          getPresignedGetUrl(atlasKey).catch(() => ''),
-        ])
-
-        if (jsonUrl && atlasUrl) {
-          spineConfig = {
-            jsonUrl,
-            atlasUrl,
-            animationName:
-              task.avatar_animation ||
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ((spineAsset.metadata as any)?.animations?.[0] ?? 'idle'),
-            scale: task.avatar_scale ?? 1,
-            offsetX: task.avatar_offset_x ?? 0,
-            offsetY: task.avatar_offset_y ?? 0,
-            spineVersion: project.spine_version,
-          }
+        const base = spineAsset.name.replace(/\.[^./]+$/, '')
+        spineConfig = {
+          jsonUrl: `/api/spine/${task.id}/${encodeURIComponent(spineAsset.name)}`,
+          atlasUrl: `/api/spine/${task.id}/${encodeURIComponent(`${base}.atlas`)}`,
+          animationName: task.avatar_animation ?? '',
+          skinName: task.avatar_skin ?? '',
+          scale: task.avatar_scale ?? 1,
+          offsetX: task.avatar_offset_x ?? 0,
+          offsetY: task.avatar_offset_y ?? 0,
+          spineVersion: project.spine_version,
         }
       }
 

@@ -28,8 +28,21 @@ export function AssetViewerModal({
   onClose,
 }: AssetViewerModalProps) {
   const [presignedUrl, setPresignedUrl] = useState<string | null>(asset.presignedUrl ?? null)
-  const [atlasUrl, setAtlasUrl] = useState<string | null>(null)
   const [artUrls, setArtUrls] = useState<Record<string, string>>({})
+
+  // Spine is previewable only from the skeleton (.json) and only when grouped
+  // under a task (the proxy resolves files by task + name).
+  const isSpineJson =
+    asset.service_type === 'animation' &&
+    (asset.file_type === 'json' || asset.name.endsWith('.json')) &&
+    Boolean(asset.task_id)
+  const spineBase = asset.name.replace(/\.[^./]+$/, '')
+  const spineJsonUrl = isSpineJson
+    ? `/api/spine/${asset.task_id}/${encodeURIComponent(asset.name)}`
+    : ''
+  const spineAtlasUrl = isSpineJson
+    ? `/api/spine/${asset.task_id}/${encodeURIComponent(`${spineBase}.atlas`)}`
+    : ''
   const [lightboxIndex, setLightboxIndex] = useState(
     Math.max(0, allArtAssets.findIndex((a) => a.id === asset.id))
   )
@@ -43,15 +56,6 @@ export function AssetViewerModal({
       .then((url) => { setPresignedUrl(url); setLoading(false) })
       .catch(() => setLoading(false))
   }, [asset.id, asset.presignedUrl])
-
-  // For Spine animation: fetch atlas URL separately (presigned URL signature is path-specific)
-  useEffect(() => {
-    if (asset.service_type !== 'animation' || !spineVersion) return
-    fetch(`/api/assets/${asset.id}/download?variant=atlas`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.url) setAtlasUrl(data.url) })
-      .catch(() => {/* ignore — SpinePlayer will show error */})
-  }, [asset.id, asset.service_type, spineVersion])
 
   // Pre-fetch URLs for all lightbox siblings (art mode only)
   useEffect(() => {
@@ -117,20 +121,28 @@ export function AssetViewerModal({
             </div>
           )}
 
-          {!loading && presignedUrl && asset.service_type === 'animation' && spineVersion && atlasUrl && (
+          {asset.service_type === 'animation' && spineVersion && isSpineJson && (
             <SpinePlayer
-              skeletonUrl={presignedUrl}
-              atlasUrl={atlasUrl}
-              animations={(asset.metadata as any)?.animations ?? []} // eslint-disable-line @typescript-eslint/no-explicit-any
-              skins={(asset.metadata as any)?.skins ?? ['default']} // eslint-disable-line @typescript-eslint/no-explicit-any
+              skeletonUrl={spineJsonUrl}
+              atlasUrl={spineAtlasUrl}
               spineVersion={spineVersion}
               assetName={asset.name}
               onDownload={() => handleDownload(asset.id)}
             />
           )}
-          {!loading && presignedUrl && asset.service_type === 'animation' && spineVersion && !atlasUrl && (
-            <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
-              Loading Spine assets…
+          {!loading && asset.service_type === 'animation' && !isSpineJson && (
+            <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
+              <span className="text-3xl">🦴</span>
+              <p className="text-sm text-center">
+                This is a Spine support file. Open the <strong>.json</strong> skeleton to play the animation.
+              </p>
+              <button
+                onClick={() => handleDownload(asset.id)}
+                className="px-4 py-2 rounded-lg text-sm font-semibold"
+                style={{ background: '#FF9500', color: '#080808' }}
+              >
+                Download {asset.name}
+              </button>
             </div>
           )}
 

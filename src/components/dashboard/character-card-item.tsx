@@ -9,6 +9,7 @@ export interface SpineCardConfig {
   jsonUrl: string
   atlasUrl: string
   animationName: string
+  skinName?: string
   scale: number
   offsetX: number
   offsetY: number
