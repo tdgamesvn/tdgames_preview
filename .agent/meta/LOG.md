@@ -1,5 +1,13 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Spine preview — fix tận gốc + skin/animation runtime)
+- **Bug gốc:** Spine chưa từng render với asset upload vì (a) URL atlas hardcode `skeleton.atlas` không tồn tại, (b) texture .png không resolve được do atlas presigned + key có prefix timestamp, (c) metadata rỗng → không có danh sách animation/skin.
+- **Fix:** thêm proxy route `/api/spine/[taskId]/[name]` stream file Spine từ R2 trên path sạch ổn định → json↔atlas↔png tự liên kết. Đọc animations + skins TỪ skeleton lúc runtime (spine-player `success` callback / built-in controls). Thêm dropdown Skin + cột `avatar_skin` (migration). `getR2Object` trong r2.ts.
+- **Lan ra:** card avatar (`character-card-grid`/`item`) + modal tab Animation (`asset-viewer-modal` + `spine-player`) đều chuyển sang proxy URL; spine-player `animations/skins` thành optional (dùng controls có sẵn); file .png/.atlas trong tab Animation → nút download thay vì player hỏng.
+- **Verified live (build C4Xhu2uob…):** Avatar Config render Spine + dropdown Animation/Skin (screenshot user); project detail card render `<canvas>` Spine (spineLoaded=true, hết PNG fallback). Proxy json/atlas/png = 200. 46/46 test pass, typecheck sạch.
+- Commits: `58cb055` (core), `221581a` (card + modal). Deploy OK.
+- LƯU Ý: chunk cũ bị cache trong browser → cần **hard-refresh** lần đầu mới thấy build mới.
+
 ## 2026-06-06 (FIXED & VERIFIED — atomic deploy + client self-heal + CF purge)
 - Reproduce crash qua Playwright (login internal tdgames.vn@gmail.com) → click card Superman → `ChunkLoadError: Loading chunk 969 failed` (404) + React #423 → ErrorBoundary "Something went wrong". Bắt được đúng stack trace.
 - **Root cause chính xác:** khe hở trong `deploy-remote.sh` cũ — `mv .next .next-old && mv .next-build .next` để `.next` vắng mặt vài ms → chunk request lúc đó = 404 → browser cache cứng (immutable, max-age 1 năm) → vỡ client-nav tới khi hard-refresh.
