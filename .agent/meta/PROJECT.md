@@ -9,7 +9,7 @@ Projects can optionally be shared via a public link (no login required).
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
 - **Auth + DB:** Supabase (email/password, PostgreSQL, RLS, Realtime)
 - **Storage:** Cloudflare R2 (presigned URLs)
-- **Deploy:** Docker + nginx on VPS Ubuntu (same vps6core as tdgames-platforms)
+- **Deploy:** PM2 (`npm start` = `next start`) on VPS vps6core at `/opt/tdgames-preview` (port 3001), behind nginx + Cloudflare. NOT Docker. Auto-deploy via GitHub Actions on push→main → `scripts/deploy-remote.sh` (release-dir + atomic symlink swap of `.next`).
 
 ## Roles
 | Role | Access |

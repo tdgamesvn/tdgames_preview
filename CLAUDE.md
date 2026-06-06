@@ -88,14 +88,15 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 
 ### Trạng thái hiện tại
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
-- **Phase đang làm:** (điền vào)
-- **Branch hiện tại:** (điền vào)
-- **Vừa hoàn thành:** (điền vào)
-- **Tiếp theo cần làm:** (điền vào)
+- **Phase đang làm:** Maintenance/bugfix (P1-P5 đã xong)
+- **Branch hiện tại:** `main`
+- **Vừa hoàn thành:** Fix crash click card nhân vật = ChunkLoadError do deploy non-atomic (404 chunk bị cache cứng). Sửa `deploy-remote.sh` → symlink swap atomic + `ErrorView` tự reload. Deploy + verify OK, đã purge CF. Commit `6883035`.
+- **Tiếp theo cần làm:** Theo dõi không còn ChunkLoadError sau các deploy tới.
 
 ### Context quan trọng
 <!-- Ghi lại những gì cần nhớ giữa các session: config đặc biệt, bug đã gặp, quyết định đột xuất -->
-- App đã deploy: `preview.tdgamestudio.com` (VPS vps6core, Docker + nginx)
+- App đã deploy: `preview.tdgamestudio.com` — **PM2** (`npm start`=next start) ở `/opt/tdgames-preview:3001` trên VPS vps6core, nginx proxy + Cloudflare. **KHÔNG phải Docker.** Auto-deploy: GitHub Actions push→main → `scripts/deploy-remote.sh` (release-dir + symlink swap atomic).
+- ChunkLoadError sau deploy = chunk 404 bị cache immutable; fix gốc là deploy atomic, nếu lỡ dính thì hard-refresh / purge Cloudflare.
 - DB: Supabase project `zjunfcyymesfpeikspzf`
 - Storage: Cloudflare R2 bucket `tdgames-preview-assets`
 

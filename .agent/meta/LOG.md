@@ -1,5 +1,15 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (FIXED & VERIFIED — atomic deploy + client self-heal + CF purge)
+- Reproduce crash qua Playwright (login internal tdgames.vn@gmail.com) → click card Superman → `ChunkLoadError: Loading chunk 969 failed` (404) + React #423 → ErrorBoundary "Something went wrong". Bắt được đúng stack trace.
+- **Root cause chính xác:** khe hở trong `deploy-remote.sh` cũ — `mv .next .next-old && mv .next-build .next` để `.next` vắng mặt vài ms → chunk request lúc đó = 404 → browser cache cứng (immutable, max-age 1 năm) → vỡ client-nav tới khi hard-refresh.
+- **FIX 1 (server, root cause):** rewrite `scripts/deploy-remote.sh` → release-dir + **symlink swap** (`ln -sfn … .next.tmp && mv -Tf .next.tmp .next`, rename(2) atomic, `.next` không bao giờ vắng). Migration 1 lần từ `.next` dir thật → `releases/legacy-*`, carry-forward chunk, prune giữ 3. Đã test symlink-swap trên VPS + `bash -n`.
+- **FIX 2 (client, lưới an toàn):** `ErrorView` detect ChunkLoadError → `hardReload()` (`src/lib/reload.ts`, guard sessionStorage 10s). 4 test mới, jest **46/46 pass**, typecheck sạch (chỉ base-ui pre-existing).
+- Commit `6883035` → push main → GitHub Actions run 27067309362 **success** (1m31s). Verify VPS: `.next` là symlink → `releases/rel-20260606-231323-*`, legacy migrate OK, buildId mới `04Olkpmj48rBq8m8if1xa`, site 200.
+- **Verify thực tế:** fresh browser (cache sạch) → click card → **hết crash, hết ChunkLoadError**, trang character render OK.
+- **CF purge:** user purge Cloudflare thủ công → chunk 969 giờ trả 200 (HIT). Bản 404 cache cứng đã sạch.
+- Phụ: lỡ xóa nhầm nhân vật Superman khi test (click trúng nút xóa, accessible-name lừa) → **đã khôi phục** task + 8 assets vào DB. Hạ tầng memory ghi SAI: KHÔNG phải Docker — thực tế **PM2 (`npm start`=next start) ở `/opt/tdgames-preview`, port 3001**, nginx proxy, Cloudflare trước.
+
 ## 2026-06-06 (Auto-deploy GitHub Actions — secrets + first run live)
 - Hoàn tất wiring CI/CD: GitHub Actions `deploy.yml` (push→main, appleboy/ssh-action) + atomic build/swap `scripts/deploy-remote.sh` (NEXT_DIST_DIR=.next-build, swap, carry-forward chunks → diệt 404-window của character page).
 - Điều tra & set 4 repo secrets qua `gh` CLI (PAT scope `repo`, GH_TOKEN bypass keyring hỏng): VPS_HOST=180.93.144.98, VPS_USER=root, VPS_PORT=22, VPS_SSH_KEY=~/.ssh/tdgames_preview_deploy (deploy key đã có trong authorized_keys VPS).
