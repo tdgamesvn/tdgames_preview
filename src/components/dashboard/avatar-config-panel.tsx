@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { Save, Loader2 } from 'lucide-react'
-import { SpineAvatarPreview } from './spine-avatar-preview'
+import { SpineAvatarPreview, type SpineLoadedData } from './spine-avatar-preview'
 import { updateTaskAvatar } from '@/lib/actions/tasks'
 import type { PrvTask, PrvAsset } from '@/lib/types/database'
 
@@ -11,10 +11,12 @@ interface AvatarConfigPanelProps {
   projectId: string
   clientId: string
   spineVersion: string | null
-  /** All animation assets belonging to this task */
+  /** All animation assets belonging to this task (json + atlas + png) */
   animationAssets: PrvAsset[]
-  /** Presigned URL per animation asset id → { jsonUrl, atlasUrl } */
-  assetPresignedUrls: Record<string, { jsonUrl: string; atlasUrl: string }>
+}
+
+function stripExt(name: string): string {
+  return name.replace(/\.[^./]+$/, '')
 }
 
 export function AvatarConfigPanel({
@@ -23,26 +25,48 @@ export function AvatarConfigPanel({
   clientId,
   spineVersion,
   animationAssets,
-  assetPresignedUrls,
 }: AvatarConfigPanelProps) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
   // Form state
-  const [assetId, setAssetId]       = useState<string>(task.avatar_asset_id ?? '')
-  const [animation, setAnimation]   = useState<string>(task.avatar_animation ?? '')
-  const [scale, setScale]           = useState<number>(task.avatar_scale ?? 1)
-  const [offsetX, setOffsetX]       = useState<number>(task.avatar_offset_x ?? 0)
-  const [offsetY, setOffsetY]       = useState<number>(task.avatar_offset_y ?? 0)
+  const [assetId, setAssetId]     = useState<string>(task.avatar_asset_id ?? '')
+  const [animation, setAnimation] = useState<string>(task.avatar_animation ?? '')
+  const [skin, setSkin]           = useState<string>(task.avatar_skin ?? '')
+  const [scale, setScale]         = useState<number>(task.avatar_scale ?? 1)
+  const [offsetX, setOffsetX]     = useState<number>(task.avatar_offset_x ?? 0)
+  const [offsetY, setOffsetY]     = useState<number>(task.avatar_offset_y ?? 0)
 
-  // Derive animation options from selected asset's metadata
-  const selectedAsset = animationAssets.find(a => a.id === assetId)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const animOptions: string[] = (selectedAsset?.metadata as any)?.animations ?? []
+  // Animations + skins discovered at runtime from the loaded skeleton.
+  const [loaded, setLoaded] = useState<SpineLoadedData | null>(null)
 
-  // Live preview URLs for the selected asset
-  const previewUrls = assetId ? assetPresignedUrls[assetId] : undefined
+  // Only Spine skeletons (.json) are selectable as the avatar source.
+  const jsonAssets = useMemo(
+    () => animationAssets.filter(a => a.file_type === 'json' || a.name.endsWith('.json')),
+    [animationAssets]
+  )
+
+  const selectedAsset = jsonAssets.find(a => a.id === assetId)
+
+  // Build proxy URLs for the selected skeleton; the texture (.png) resolves
+  // relative to the atlas URL automatically (see /api/spine route).
+  const previewUrls = useMemo(() => {
+    if (!selectedAsset) return undefined
+    const base = stripExt(selectedAsset.name)
+    const atlasAsset = animationAssets.find(
+      a => (a.file_type === 'atlas' || a.name.endsWith('.atlas')) && stripExt(a.name) === base
+    )
+    if (!atlasAsset) return undefined
+    return {
+      jsonUrl: `/api/spine/${task.id}/${encodeURIComponent(selectedAsset.name)}`,
+      atlasUrl: `/api/spine/${task.id}/${encodeURIComponent(atlasAsset.name)}`,
+    }
+  }, [selectedAsset, animationAssets, task.id])
+
+  const animOptions = loaded?.animations ?? []
+  // Spine always has a "default" skin; only offer the selector when there are real skins.
+  const skinOptions = (loaded?.skins ?? []).filter(s => s && s !== 'default')
 
   function handleSave() {
     setError(null)
@@ -54,6 +78,7 @@ export function AvatarConfigPanel({
         client_id: clientId,
         avatar_asset_id: assetId || null,
         avatar_animation: animation || null,
+        avatar_skin: skin || null,
         avatar_scale: scale,
         avatar_offset_x: offsetX,
         avatar_offset_y: offsetY,
@@ -65,6 +90,11 @@ export function AvatarConfigPanel({
         setTimeout(() => setSaved(false), 2000)
       }
     })
+  }
+
+  const selectStyle = {
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.1)',
   }
 
   return (
@@ -79,25 +109,25 @@ export function AvatarConfigPanel({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Controls */}
         <div className="space-y-4">
-          {/* Animation asset */}
+          {/* Animation asset (.json only) */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
               Spine Animation Asset
             </label>
             <select
               value={assetId}
-              onChange={e => { setAssetId(e.target.value); setAnimation('') }}
+              onChange={e => { setAssetId(e.target.value); setAnimation(''); setSkin(''); setLoaded(null) }}
               className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={selectStyle}
             >
               <option value="">— None —</option>
-              {animationAssets.map(a => (
+              {jsonAssets.map(a => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
           </div>
 
-          {/* Animation name */}
+          {/* Animation (from skeleton) */}
           {animOptions.length > 0 && (
             <div className="space-y-1.5">
               <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
@@ -107,11 +137,31 @@ export function AvatarConfigPanel({
                 value={animation}
                 onChange={e => setAnimation(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={selectStyle}
               >
                 <option value="">— Default (first) —</option>
                 {animOptions.map(anim => (
                   <option key={anim} value={anim}>{anim}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Skin (from skeleton) */}
+          {skinOptions.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
+                Skin
+              </label>
+              <select
+                value={skin}
+                onChange={e => setSkin(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
+                style={selectStyle}
+              >
+                <option value="">— Default —</option>
+                {skinOptions.map(s => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
@@ -141,7 +191,7 @@ export function AvatarConfigPanel({
                 value={offsetX}
                 onChange={e => setOffsetX(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={selectStyle}
               />
             </div>
             <div className="space-y-1.5">
@@ -153,7 +203,7 @@ export function AvatarConfigPanel({
                 value={offsetY}
                 onChange={e => setOffsetY(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={selectStyle}
               />
             </div>
           </div>
@@ -190,14 +240,16 @@ export function AvatarConfigPanel({
           >
             {previewUrls && spineVersion ? (
               <SpineAvatarPreview
-                key={`${assetId}-${animation}-${scale}-${offsetX}-${offsetY}`}
+                key={`${assetId}-${animation}-${skin}-${scale}-${offsetX}-${offsetY}`}
                 jsonUrl={previewUrls.jsonUrl}
                 atlasUrl={previewUrls.atlasUrl}
-                animationName={animation || animOptions[0] || 'idle'}
+                animationName={animation}
+                skinName={skin}
                 scale={scale}
                 offsetX={offsetX}
                 offsetY={offsetY}
                 spineVersion={spineVersion}
+                onLoaded={setLoaded}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -211,7 +263,9 @@ export function AvatarConfigPanel({
             )}
           </div>
           <p className="text-[10px]" style={{ color: '#444' }}>
-            {assetId ? 'Live Spine preview' : 'Select an asset to preview'}
+            {!spineVersion
+              ? 'Set a Spine version in project settings'
+              : assetId ? 'Live Spine preview' : 'Select an asset to preview'}
           </p>
         </div>
       </div>

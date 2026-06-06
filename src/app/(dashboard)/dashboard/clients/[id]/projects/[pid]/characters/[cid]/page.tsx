@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { getPresignedGetUrl } from '@/lib/r2'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -47,23 +46,6 @@ export default async function DashboardCharacterPage({
 
   const animationAssets = animAssets ?? []
 
-  // Presign json + atlas URLs for each animation asset (for AvatarConfigPanel live preview)
-  const presignEntries = await Promise.all(
-    animationAssets.map(async a => {
-      try {
-        const dir = a.r2_key.replace(/\/[^/]+$/, '')
-        const [jsonUrl, atlasUrl] = await Promise.all([
-          getPresignedGetUrl(a.r2_key),
-          getPresignedGetUrl(`${dir}/skeleton.atlas`),
-        ])
-        return [a.id, { jsonUrl, atlasUrl }] as const
-      } catch {
-        return [a.id, { jsonUrl: '', atlasUrl: '' }] as const
-      }
-    })
-  )
-  const assetPresignedUrls = Object.fromEntries(presignEntries)
-
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-5">
       {/* Breadcrumb */}
@@ -92,7 +74,6 @@ export default async function DashboardCharacterPage({
         clientId={params.id}
         spineVersion={project.spine_version}
         animationAssets={animationAssets}
-        assetPresignedUrls={assetPresignedUrls}
       />
 
       {/* Asset tabs */}

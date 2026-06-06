@@ -33,6 +33,30 @@ export async function getPresignedGetUrl(key: string): Promise<string> {
   return getSignedUrl(client, command, { expiresIn: 3600 })
 }
 
+export interface R2Object {
+  body: ReadableStream | null
+  contentType: string | undefined
+  contentLength: number | undefined
+}
+
+/**
+ * Fetch an object's stream from R2 for server-side proxying. Used by the Spine
+ * proxy route so the runtime can resolve the texture (.png) relative to the
+ * atlas URL without presigned query strings breaking the relative path.
+ */
+export async function getR2Object(key: string): Promise<R2Object> {
+  const client = getR2Client()
+  const res = await client.send(new GetObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME!,
+    Key: key,
+  }))
+  return {
+    body: (res.Body as unknown as ReadableStream) ?? null,
+    contentType: res.ContentType,
+    contentLength: res.ContentLength,
+  }
+}
+
 export async function deleteR2Object(key: string): Promise<void> {
   const client = getR2Client()
   await client.send(new DeleteObjectCommand({
