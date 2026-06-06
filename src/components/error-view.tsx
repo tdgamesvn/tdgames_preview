@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react'
 
+import { hardReload } from '@/lib/reload'
+
 interface ErrorViewProps {
   error: Error & { digest?: string }
   reset: () => void
@@ -12,10 +14,36 @@ interface ErrorViewProps {
  * browser console so production "client-side exception" crashes surface a
  * traceable id, and offers the user a retry instead of a blank page.
  */
+/**
+ * Detect a webpack/Next.js chunk-load failure. This happens when a new version
+ * is deployed while a tab is open: the client references JS chunks from the
+ * previous build that no longer exist on the server (404). `reset()` cannot
+ * recover from it — only a fresh document load fetches the new build's chunks.
+ */
+function isChunkLoadError(error: Error): boolean {
+  return (
+    error.name === 'ChunkLoadError' ||
+    /loading chunk [^ ]+ failed|chunkloaderror/i.test(error.message)
+  )
+}
+
 export function ErrorView({ error, reset }: ErrorViewProps) {
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error('[ErrorBoundary]', error, error.digest ? `digest=${error.digest}` : '')
+
+    // A stale-deploy ChunkLoadError self-heals with a hard reload. Guard against
+    // a reload loop (e.g. the new build is genuinely broken) by only reloading
+    // once per short window.
+    if (isChunkLoadError(error) && typeof window !== 'undefined') {
+      const KEY = '__tdg_chunk_reload_at'
+      const last = Number(window.sessionStorage.getItem(KEY) || 0)
+      const now = Date.now()
+      if (now - last > 10_000) {
+        window.sessionStorage.setItem(KEY, String(now))
+        hardReload()
+      }
+    }
   }, [error])
 
   return (

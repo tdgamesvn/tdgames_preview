@@ -1,5 +1,24 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (Auto-deploy GitHub Actions — secrets + first run live)
+- Hoàn tất wiring CI/CD: GitHub Actions `deploy.yml` (push→main, appleboy/ssh-action) + atomic build/swap `scripts/deploy-remote.sh` (NEXT_DIST_DIR=.next-build, swap, carry-forward chunks → diệt 404-window của character page).
+- Điều tra & set 4 repo secrets qua `gh` CLI (PAT scope `repo`, GH_TOKEN bypass keyring hỏng): VPS_HOST=180.93.144.98, VPS_USER=root, VPS_PORT=22, VPS_SSH_KEY=~/.ssh/tdgames_preview_deploy (deploy key đã có trong authorized_keys VPS).
+- Sự cố giả "port 22 closed": thực ra IP nhà (14.177.78.65) bị **fail2ban ban** trên VPS (REJECT trong f2b-sshd); INPUT policy ACCEPT, ufw tắt, không có provider firewall → GitHub Actions SSH:22 OK. Tailscale SSH bypass fail2ban nên local vẫn vào được.
+- Trigger workflow_dispatch → run 27065729438 **success** (1m26s). Verify: VPS HEAD=0b9f2d4 trên main, pm2 online (restart mới), site HTTP 200, JS chunk HTTP 200, .next-old/.next-build đã dọn.
+- Còn lại (manual): Playwright mở trang character có login để khẳng định 0 console error (thiếu cred trong phiên này).
+
+## 2026-06-06 (ROOT CAUSE thật của "character page crash" — 404 immutable chunk)
+- Post-deploy verify: unban IP nhà khỏi fail2ban (ssh:22 trực tiếp đã thông). Tạm bật share ORCA (token 6476ae12…) để Playwright verify không cần login → đã tắt lại sau.
+- **Phát hiện qua Playwright + browser_evaluate:** trang share báo `ChunkLoadError: Loading chunk 969 failed` (404 `/_next/static/chunks/969-…js`) + React #423.
+  - `fetch(no-store)` chunk → **200** (cf HIT); `fetch()` default-cache → **404**; script-tag URL gốc → error; script-tag thêm `?probe=` → OK 200.
+  - ⇒ Origin/CF HIỆN serve 200; nhưng browser/edge đã **cache cứng 1 bản 404** cho chunk immutable (`max-age=31536000, immutable`) → vỡ tới khi hard-refresh.
+- **Nguồn 404:** khe hở trong `deploy-remote.sh`: giữa `mv .next .next-old` và `mv .next-build .next`, thư mục `.next` biến mất → mọi request chunk lúc đó = 404. Carry-forward chỉ cứu chunk *cũ*, KHÔNG bịt được khe `.next` vắng mặt. Đây là root cause thật của "character page crash" mà các session trước chưa bắt được.
+- **Trạng thái:** site OK với user mới / đã hard-refresh (CF serve 200); chỉ browser dính 404 trong khe deploy là vỡ.
+- **FIX đề xuất (CHƯA triển khai — chờ duyệt):**
+  1. Atomic symlink swap: build vào `releases/<BUILD_ID>/`, carry-forward chunk, `.next` là symlink, swap bằng `ln -sfn … .next.tmp && mv -T .next.tmp .next` (rename nguyên tử) → không còn 404-window.
+  2. Purge Cloudflare cache 1 lần (cần CF API token) để xoá 404 đã lỡ cache ở edge.
+  3. nginx: `proxy_intercept_errors` + không cache 4xx cho `/_next/static/*` (phòng hờ).
+
 ## 2026-06-06 (Portal UI/UX polish + Spine fix)
 - CharacterCardItem: fixed 200px → w-full + aspect-ratio 3/4 (responsive)
 - CharacterCardGrid: flex-wrap → CSS grid 2→3→4→5 cols
