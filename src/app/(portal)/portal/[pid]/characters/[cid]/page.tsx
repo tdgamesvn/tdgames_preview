@@ -38,7 +38,6 @@ export default async function PortalCharacterPage({
       .single() as Promise<{ data: PrvTask | null }>,
   ])
 
-  // Internal can preview any project; clients restricted to own
   const isInternal = profile?.role === 'internal'
   if (!project || (!isInternal && project.client_id !== profile?.client_id)) notFound()
   if (!task) notFound()
@@ -53,13 +52,12 @@ export default async function PortalCharacterPage({
 
   const allAssets = assets ?? []
 
-  // Generate presigned URLs for art thumbnails
+  // Generate presigned URLs for art thumbnails server-side
   const artAssets = allAssets.filter(a => a.service_type === 'art')
   const presignedEntries = await Promise.all(
     artAssets.map(async a => {
       try {
-        const url = await getPresignedGetUrl(a.r2_key)
-        return [a.id, url] as const
+        return [a.id, await getPresignedGetUrl(a.r2_key)] as const
       } catch {
         return [a.id, ''] as const
       }
@@ -69,56 +67,141 @@ export default async function PortalCharacterPage({
 
   const assetsFor = (st: string) => allAssets.filter(a => a.service_type === st)
 
+  const artCount       = assetsFor('art').length
+  const animCount      = assetsFor('animation').length
+  const vfxCount       = assetsFor('vfx').length
+
   return (
-    <div className="space-y-5">
-      {/* Back link + heading */}
-      <div className="space-y-1">
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider flex-wrap">
+        <Link
+          href="/portal"
+          className="transition-colors hover:text-white"
+          style={{ color: '#444' }}
+        >
+          Projects
+        </Link>
+        <span style={{ color: '#333' }}>›</span>
         <Link
           href={`/portal/${params.pid}`}
-          className="text-[10px] font-semibold uppercase tracking-wider transition-colors"
-          style={{ color: '#555' }}
+          className="transition-colors hover:text-white"
+          style={{ color: '#444' }}
         >
-          ← Back to project
+          {project.name}
         </Link>
-        <h1 className="text-lg font-black uppercase tracking-wider text-white">{task.name}</h1>
+        <span style={{ color: '#333' }}>›</span>
+        <span className="text-white">{task.name}</span>
+      </nav>
+
+      {/* Character heading */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-black uppercase tracking-wider text-white">{task.name}</h1>
+        <p className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>
+          {project.name}
+        </p>
       </div>
 
-      <Tabs defaultValue="art">
+      {/* Asset count summary */}
+      <div className="flex items-center gap-4">
+        {artCount > 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+            🖼 {artCount} Art
+          </span>
+        )}
+        {animCount > 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+            🦴 {animCount} Animation
+          </span>
+        )}
+        {vfxCount > 0 && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
+            🎬 {vfxCount} VFX
+          </span>
+        )}
+        {allAssets.length === 0 && (
+          <span className="text-xs" style={{ color: '#444' }}>No assets yet</span>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue={artCount > 0 ? 'art' : animCount > 0 ? 'animation' : 'vfx'}>
         <TabsList className="mb-6">
-          <TabsTrigger value="art">Art</TabsTrigger>
-          <TabsTrigger value="animation">Animation</TabsTrigger>
-          <TabsTrigger value="vfx">VFX</TabsTrigger>
+          <TabsTrigger value="art">Art {artCount > 0 && <TabCount n={artCount} />}</TabsTrigger>
+          <TabsTrigger value="animation">Animation {animCount > 0 && <TabCount n={animCount} />}</TabsTrigger>
+          <TabsTrigger value="vfx">VFX {vfxCount > 0 && <TabCount n={vfxCount} />}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="art">
-          <AssetGridClient
-            assets={assetsFor('art')}
-            serviceType="art"
-            projectId={project.id}
-            presignedUrls={presignedUrls}
-            readonly
-          />
+          {artCount === 0 ? (
+            <EmptyTab label="Art" />
+          ) : (
+            <AssetGridClient
+              assets={assetsFor('art')}
+              serviceType="art"
+              projectId={project.id}
+              presignedUrls={presignedUrls}
+              readonly
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="animation">
-          <AssetGridClient
-            assets={assetsFor('animation')}
-            serviceType="animation"
-            spineVersion={project.spine_version}
-            projectId={project.id}
-            readonly
-          />
+          {animCount === 0 ? (
+            <EmptyTab label="Animation" />
+          ) : (
+            <AssetGridClient
+              assets={assetsFor('animation')}
+              serviceType="animation"
+              spineVersion={project.spine_version}
+              projectId={project.id}
+              readonly
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="vfx">
-          <AssetGridClient
-            assets={assetsFor('vfx')}
-            serviceType="vfx"
-            projectId={project.id}
-            readonly
-          />
+          {vfxCount === 0 ? (
+            <EmptyTab label="VFX" />
+          ) : (
+            <AssetGridClient
+              assets={assetsFor('vfx')}
+              serviceType="vfx"
+              projectId={project.id}
+              readonly
+            />
+          )}
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function TabCount({ n }: { n: number }) {
+  return (
+    <span
+      className="ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md"
+      style={{ background: 'rgba(255,149,0,0.15)', color: '#FF9500' }}
+    >
+      {n}
+    </span>
+  )
+}
+
+function EmptyTab({ label }: { label: string }) {
+  const icons: Record<string, string> = { Art: '🖼', Animation: '🦴', VFX: '🎬' }
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-3">
+      <span className="text-4xl opacity-30">{icons[label]}</span>
+      <p className="text-sm font-semibold" style={{ color: '#444' }}>
+        No {label} assets yet
+      </p>
+      <p className="text-xs" style={{ color: '#333' }}>
+        Check back soon — our team is working on it.
+      </p>
     </div>
   )
 }

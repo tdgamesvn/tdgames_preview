@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getPresignedGetUrl } from '@/lib/r2'
 import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
 import { CharacterCardGrid } from '@/components/dashboard/character-card-grid'
@@ -72,6 +73,16 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Back link */}
+      <Link
+        href="/portal"
+        className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider transition-colors hover:text-white"
+        style={{ color: '#555' }}
+      >
+        ← All Projects
+      </Link>
+
+      {/* Project heading */}
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-black uppercase tracking-wider text-white">{project.name}</h1>
         <span
@@ -83,7 +94,7 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
       </div>
 
       {project.description && (
-        <p className="text-sm text-neutral-medium">{project.description}</p>
+        <p className="text-sm" style={{ color: '#888' }}>{project.description}</p>
       )}
 
       <Tabs defaultValue="characters">

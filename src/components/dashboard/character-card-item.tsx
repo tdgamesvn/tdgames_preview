@@ -34,13 +34,11 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
   return (
     <div
       onClick={() => router.push(href)}
-      className="cursor-pointer rounded-2xl overflow-hidden flex flex-col transition-all"
+      className="cursor-pointer rounded-2xl overflow-hidden flex flex-col transition-all w-full"
       style={{
         background: 'rgba(255,255,255,0.03)',
         border: '1px solid rgba(255,255,255,0.08)',
-        width: '200px',
-        height: '260px',
-        flexShrink: 0,
+        aspectRatio: '3/4',
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement

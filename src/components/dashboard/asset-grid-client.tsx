@@ -34,6 +34,14 @@ export function AssetGridClient({
   const [deleting, setDeleting] = useState<string | null>(null)
 
   if (!assets.length) {
+    if (readonly) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 gap-2">
+          <span className="text-3xl opacity-20">{TYPE_ICON[serviceType]}</span>
+          <p className="text-xs" style={{ color: '#444' }}>No assets yet — check back soon.</p>
+        </div>
+      )
+    }
     return (
       <p className="text-xs italic" style={{ color: '#444' }}>
         No {serviceType} assets yet — drop files above to upload.
