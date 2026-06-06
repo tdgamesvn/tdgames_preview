@@ -3,11 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-interface LoginFormProps {
-  monoFont?: string
-}
-
-export function LoginForm({ monoFont }: LoginFormProps) {
+export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -30,11 +26,11 @@ export function LoginForm({ monoFont }: LoginFormProps) {
     // Query role directly from client (session is set, RLS allows reading own profile)
     try {
       const userId = authData.user?.id
-      const { data: profile } = await supabase
+      const { data: profile } = (await supabase
         .from('Prv_profiles')
         .select('role')
         .eq('id', userId!)
-        .single() as { data: { role: string } | null }
+        .single()) as { data: { role: string } | null }
 
       window.location.href = profile?.role === 'internal' ? '/dashboard' : '/portal'
     } catch {
@@ -46,8 +42,7 @@ export function LoginForm({ monoFont }: LoginFormProps) {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Email */}
       <div className="fu2">
-        <label className="form-label" htmlFor="email"
-          style={{ fontFamily: monoFont }}>
+        <label className="form-label" htmlFor="email">
           Email Address
         </label>
         <input
@@ -64,8 +59,7 @@ export function LoginForm({ monoFont }: LoginFormProps) {
 
       {/* Password */}
       <div className="fu3">
-        <label className="form-label" htmlFor="password"
-          style={{ fontFamily: monoFont }}>
+        <label className="form-label" htmlFor="password">
           Password
         </label>
         <input
@@ -89,22 +83,16 @@ export function LoginForm({ monoFont }: LoginFormProps) {
 
       {/* Submit */}
       <div className="fu4">
-        <button
-          type="submit"
-          className="amber-btn"
-          disabled={loading}
-          style={{ fontFamily: monoFont ?? 'inherit' }}
-        >
+        <button type="submit" className="amber-btn" disabled={loading}>
           {loading ? 'Signing in…' : 'Sign In →'}
         </button>
       </div>
 
-      {/* Divider hint */}
+      {/* Hint */}
       <div className="fu5" style={{
         textAlign: 'center',
         fontSize: 11,
-        color: 'rgba(148,163,184,0.35)',
-        fontFamily: monoFont,
+        color: 'rgba(157,156,157,0.35)',
         letterSpacing: '0.08em',
       }}>
         Credentials provided by your studio contact

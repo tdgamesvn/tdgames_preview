@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getPresignedGetUrl } from '@/lib/r2'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
-import { Badge } from '@/components/ui/badge'
 import type { PrvAsset, PrvProject } from '@/lib/types/database'
 
 interface Props {
@@ -13,21 +12,21 @@ interface Props {
 export default async function SharePage({ params }: Props) {
   const admin = createAdminClient() as any // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  const { data: project } = await admin
+  const { data: project } = (await admin
     .from('Prv_projects')
     .select('*')
     .eq('share_token', params.token)
     .eq('share_enabled', true)
-    .single() as { data: PrvProject | null }
+    .single()) as { data: PrvProject | null }
 
   if (!project) notFound()
 
-  const { data: assets } = await admin
+  const { data: assets } = (await admin
     .from('Prv_assets')
     .select('*')
     .eq('project_id', project.id)
     .order('sort_order')
-    .order('created_at') as { data: PrvAsset[] | null }
+    .order('created_at')) as { data: PrvAsset[] | null }
 
   // Pre-generate presigned URLs server-side — no client auth needed
   const allAssets: (PrvAsset & { presignedUrl: string })[] = await Promise.all(
@@ -42,20 +41,37 @@ export default async function SharePage({ params }: Props) {
   const vfxAssets = allAssets.filter((a) => a.service_type === 'vfx')
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg">
       {/* Minimal branded header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3">
-        <span className="font-semibold text-gray-800">TDGame Preview</span>
+      <header
+        className="px-6 py-3 flex items-center"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0F0F0F' }}
+      >
+        <span className="text-xs font-black uppercase tracking-widest text-white">TDGAME</span>
+        <span
+          className="text-[9px] font-black uppercase tracking-widest ml-2 px-1.5 py-0.5 rounded"
+          style={{ background: 'rgba(255,149,0,0.08)', color: '#FF9500' }}
+        >
+          Preview
+        </span>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{project.name}</h1>
-          <Badge variant="secondary">Shared Preview</Badge>
+      <main className="max-w-[1400px] mx-auto px-6 py-8 space-y-6">
+        {/* Heading + shared badge */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-black uppercase tracking-wider text-white">
+            {project.name}
+          </h1>
+          <span
+            className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
+            style={{ background: 'rgba(33,150,243,0.15)', color: '#2196F3' }}
+          >
+            Shared Preview
+          </span>
         </div>
 
         {project.description && (
-          <p className="text-gray-600 mb-6">{project.description}</p>
+          <p className="text-sm text-neutral-medium">{project.description}</p>
         )}
 
         <Tabs defaultValue="art">

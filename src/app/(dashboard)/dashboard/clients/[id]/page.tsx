@@ -2,9 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ProjectForm } from '@/components/dashboard/project-form'
-import { Badge } from '@/components/ui/badge'
 import { deleteProject } from '@/lib/actions/projects'
-import { Button } from '@/components/ui/button'
 import type { PrvClient, PrvProject } from '@/lib/types/database'
 
 export default async function ClientDetailPage({
@@ -31,67 +29,88 @@ export default async function ClientDetailPage({
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <p className="text-sm text-gray-500 mb-1">Client</p>
-        <h1 className="text-2xl font-bold">{client.name}</h1>
-        <p className="text-gray-400 text-sm">/{client.slug}</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Projects</h2>
+    <div className="p-8 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-1">
+            Client
+          </p>
+          <h1 className="text-lg font-black uppercase tracking-wider text-white">
+            {client.name}
+          </h1>
+          <p className="text-xs font-mono tracking-wider text-neutral-medium mt-0.5">
+            /{client.slug}
+          </p>
+        </div>
         <ProjectForm clientId={client.id} />
       </div>
 
+      {/* Empty state */}
       {!projects?.length ? (
-        <p className="text-gray-500">No projects yet.</p>
+        <div className="text-center py-16">
+          <p className="text-3xl mb-3">📁</p>
+          <p className="text-sm text-neutral-medium">No projects yet</p>
+          <p className="text-xs mt-1 text-neutral-dark">
+            Create the first project for this client above
+          </p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg shadow p-5">
-              <div className="flex items-start justify-between">
-                <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {projects.map((project) => {
+            const statusColor = project.status === 'active' ? '#4CAF50' : '#9D9C9D'
+            return (
+              <div
+                key={project.id}
+                className="rounded-2xl border border-white/8 p-5 space-y-3 transition-all hover:border-white/20"
+                style={{ background: 'rgba(255,255,255,0.02)' }}
+              >
+                {/* Name + status badge */}
+                <div className="flex items-start justify-between gap-2">
                   <Link
                     href={`/dashboard/clients/${client.id}/projects/${project.id}`}
-                    className="font-semibold hover:underline"
+                    className="text-sm font-semibold text-white hover:text-primary transition-colors leading-snug"
                   >
                     {project.name}
                   </Link>
-                  {project.description && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {project.description}
-                    </p>
-                  )}
-                </div>
-                <Badge
-                  variant={
-                    project.status === 'active' ? 'default' : 'secondary'
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-xs text-gray-400">
-                  {project.share_enabled ? '🔗 Shared' : 'Private'}
-                </span>
-                <form
-                  action={async () => {
-                    'use server'
-                    await deleteProject(project.id, client.id)
-                  }}
-                >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700"
+                  <span
+                    className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg flex-shrink-0"
+                    style={{ background: `${statusColor}20`, color: statusColor }}
                   >
-                    Delete
-                  </Button>
-                </form>
+                    {project.status}
+                  </span>
+                </div>
+
+                {/* Description */}
+                {project.description && (
+                  <p className="text-xs text-neutral-medium">{project.description}</p>
+                )}
+
+                {/* Footer */}
+                <div
+                  className="flex items-center justify-between pt-2"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <span className="text-[10px] font-mono text-neutral-medium">
+                    {project.share_enabled ? '🔗 Shared' : '🔒 Private'}
+                  </span>
+                  <form
+                    action={async () => {
+                      'use server'
+                      await deleteProject(project.id, client.id)
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-neutral-medium border border-white/10 hover:text-status-error hover:border-red-500/20 transition-all"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

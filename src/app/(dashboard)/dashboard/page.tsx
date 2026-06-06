@@ -2,15 +2,16 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import type { PrvAsset } from '@/lib/types/database'
 
+// Service type helpers
 const serviceIcon = (t: string) =>
   t === 'art' ? '🖼️' : t === 'animation' ? '🦴' : '🎬'
 
 const serviceColor = (t: string) =>
   t === 'art'
-    ? { bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.35)', text: '#fb923c' }
+    ? '#FF9500'
     : t === 'animation'
-      ? { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', text: '#818cf8' }
-      : { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', text: '#4ade80' }
+      ? '#818cf8'
+      : '#4ade80'
 
 export default async function DashboardPage() {
   const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -32,207 +33,110 @@ export default async function DashboardPage() {
   ])
 
   const stats = [
-    { label: 'CLIENTS', value: clientCount ?? 0, href: '/dashboard/clients', icon: '◈', desc: 'Active studio clients' },
-    { label: 'PROJECTS', value: projectCount ?? 0, href: '/dashboard/clients', icon: '◆', desc: 'Total projects' },
-    { label: 'ASSETS', value: assetCount ?? 0, href: '#', icon: '◉', desc: 'Uploaded files' },
+    { label: 'Clients',  value: clientCount  ?? 0, href: '/dashboard/clients', desc: 'Active studio clients' },
+    { label: 'Projects', value: projectCount ?? 0, href: '/dashboard/clients', desc: 'Total projects'       },
+    { label: 'Assets',   value: assetCount   ?? 0, href: '#',                  desc: 'Uploaded files'       },
   ]
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-        .dash-font { font-family: 'Rajdhani', sans-serif; }
-        .dash-heading { font-family: 'Audiowide', cursive; }
-        .dash-mono { font-family: 'JetBrains Mono', monospace; }
+    <div className="p-8 space-y-6 font-montserrat">
 
-        .stat-card {
-          background: linear-gradient(135deg, rgba(249,115,22,0.07) 0%, rgba(249,115,22,0.03) 100%);
-          border: 1px solid rgba(249,115,22,0.2);
-          border-radius: 6px;
-          padding: 24px;
-          position: relative;
-          overflow: hidden;
-          text-decoration: none;
-          display: block;
-          transition: all 0.2s;
-        }
-        .stat-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #f97316, transparent);
-          opacity: 0.6;
-        }
-        .stat-card:hover {
-          border-color: rgba(249,115,22,0.5);
-          background: linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.06) 100%);
-          box-shadow: 0 0 24px rgba(249,115,22,0.15);
-          transform: translateY(-1px);
-        }
-        .corner-tl::after {
-          content: '';
-          position: absolute;
-          top: 8px; left: 8px;
-          width: 10px; height: 10px;
-          border-top: 1px solid rgba(249,115,22,0.5);
-          border-left: 1px solid rgba(249,115,22,0.5);
-        }
-        .corner-br::before {
-          content: '';
-          position: absolute;
-          bottom: 8px; right: 8px;
-          width: 10px; height: 10px;
-          border-bottom: 1px solid rgba(249,115,22,0.5);
-          border-right: 1px solid rgba(249,115,22,0.5);
-        }
-        .asset-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 20px;
-          border-bottom: 1px solid rgba(249,115,22,0.06);
-          transition: background 0.15s;
-        }
-        .asset-row:last-child { border-bottom: none; }
-        .asset-row:hover { background: rgba(249,115,22,0.04); }
-        .service-badge {
-          font-size: 10px;
-          padding: 3px 8px;
-          border-radius: 3px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-        .panel {
-          background: rgba(249,115,22,0.04);
-          border: 1px solid rgba(249,115,22,0.12);
-          border-radius: 6px;
-          overflow: hidden;
-        }
-        .panel-header {
-          padding: 14px 20px;
-          border-bottom: 1px solid rgba(249,115,22,0.1);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-      `}</style>
+      {/* ── Page heading ─────────────────────────────────────────── */}
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-1">
+          Internal Dashboard
+        </p>
+        <h1 className="text-lg font-black uppercase tracking-wider text-white">
+          Overview
+        </h1>
+      </div>
 
-      <div className="dash-font" style={{ padding: '32px 36px', color: '#f8fafc', minHeight: '100vh' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div className="dash-mono" style={{
-              fontSize: 10, letterSpacing: '0.25em',
-              color: 'rgba(249,115,22,0.5)', marginBottom: 6,
-              textTransform: 'uppercase',
-            }}>
-              {'// SYSTEM OVERVIEW'}
-            </div>
-            <h1 className="dash-heading" style={{
-              fontSize: 22, color: '#f97316',
-              letterSpacing: '0.04em',
-            }}>
-              COMMAND CENTER
-            </h1>
-          </div>
-          <div className="dash-mono" style={{
-            fontSize: 10,
-            color: 'rgba(249,115,22,0.3)',
-            letterSpacing: '0.1em',
-            textAlign: 'right',
-            lineHeight: 2,
-          }}>
-            <div>TDGAME STUDIO</div>
-            <div style={{ color: 'rgba(34,197,94,0.6)' }}>● PORTAL ONLINE</div>
-          </div>
+      {/* ── KPI Stats ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-6">
+        {stats.map(({ label, value, href, desc }) => (
+          <Link
+            key={label}
+            href={href}
+            className="rounded-2xl border border-white/8 p-5 space-y-1 transition-all hover:border-white/20 block"
+            style={{ background: 'rgba(255,255,255,0.02)' }}
+          >
+            <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium">
+              {label}
+            </p>
+            <p className="text-2xl font-black text-white">
+              {String(value).padStart(2, '0')}
+            </p>
+            <p className="text-xs text-neutral-medium">{desc}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* ── Recent Uploads ───────────────────────────────────────── */}
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.08)' }}
+      >
+        {/* Panel header */}
+        <div
+          className="px-5 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        >
+          <p className="text-[10px] font-black uppercase tracking-wider text-white">
+            Recent Uploads
+          </p>
+          <p className="text-[9px] font-black uppercase tracking-wider text-neutral-medium">
+            Last {recentAssets?.length ?? 0} files
+          </p>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-          {stats.map(({ label, value, href, icon, desc }) => (
-            <Link key={label} href={href} className="stat-card corner-tl corner-br">
-              <div style={{
-                fontSize: 11, letterSpacing: '0.2em',
-                color: 'rgba(249,115,22,0.5)',
-                marginBottom: 12,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }} className="dash-mono">
-                <span style={{ color: '#f97316', fontSize: 14 }}>{icon}</span>
-                {label}
-              </div>
-              <div style={{
-                fontSize: 52, fontWeight: 700,
-                color: '#f97316',
-                lineHeight: 1,
-                marginBottom: 8,
-                fontFamily: 'Audiowide, cursive',
-              }}>
-                {String(value).padStart(2, '0')}
-              </div>
-              <div style={{ fontSize: 12, color: 'rgba(248,250,252,0.35)' }}>
-                {desc}
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Recent uploads */}
-        <div className="panel">
-          <div className="panel-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 14, color: '#f97316' }}>◈</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#fb923c', letterSpacing: '0.05em' }}>
-                RECENT UPLOADS
-              </span>
-            </div>
-            <div className="dash-mono" style={{ fontSize: 10, color: 'rgba(249,115,22,0.35)', letterSpacing: '0.1em' }}>
-              LAST {recentAssets?.length ?? 0} FILES
-            </div>
+        {/* Empty state */}
+        {!recentAssets?.length ? (
+          <div className="text-center py-16">
+            <p className="text-3xl mb-3">📂</p>
+            <p className="text-sm text-neutral-medium">No assets uploaded yet</p>
+            <p className="text-xs mt-1 text-neutral-dark">
+              Upload assets from a project page to see them here
+            </p>
           </div>
-
-          {!recentAssets?.length ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center', color: 'rgba(249,115,22,0.2)' }}
-              className="dash-mono">
-              <div style={{ fontSize: 24, marginBottom: 8 }}>[ NO DATA ]</div>
-              <div style={{ fontSize: 11 }}>Upload assets to see them here</div>
-            </div>
-          ) : (
-            recentAssets.map((asset) => {
-              const sc = serviceColor(asset.service_type)
-              return (
-                <div key={asset.id} className="asset-row">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: 18 }}>{serviceIcon(asset.service_type)}</span>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#f8fafc', marginBottom: 2 }}>
-                        {asset.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'rgba(248,250,252,0.35)' }}>
-                        {asset.Prv_projects?.Prv_clients?.name}
-                        <span style={{ margin: '0 6px', color: 'rgba(249,115,22,0.3)' }}>›</span>
-                        {asset.Prv_projects?.name}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <span
-                      className="service-badge"
-                      style={{ background: sc.bg, border: `1px solid ${sc.border}`, color: sc.text }}
-                    >
-                      {asset.service_type}
-                    </span>
-                    <span className="dash-mono" style={{ fontSize: 10, color: 'rgba(249,115,22,0.35)' }}>
-                      {new Date(asset.created_at).toLocaleDateString()}
-                    </span>
+        ) : (
+          recentAssets.map((asset) => {
+            const color = serviceColor(asset.service_type)
+            return (
+              <div
+                key={asset.id}
+                className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.025] transition-all"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
+              >
+                {/* Left: icon + name + breadcrumb */}
+                <div className="flex items-center gap-3">
+                  <span className="text-base">{serviceIcon(asset.service_type)}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{asset.name}</p>
+                    <p className="text-xs text-neutral-medium mt-0.5">
+                      {asset.Prv_projects?.Prv_clients?.name}
+                      <span className="mx-1.5 text-neutral-dark">›</span>
+                      {asset.Prv_projects?.name}
+                    </p>
                   </div>
                 </div>
-              )
-            })
-          )}
-        </div>
+
+                {/* Right: service badge + date */}
+                <div className="flex flex-col items-end gap-1">
+                  <span
+                    className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
+                    style={{ background: `${color}20`, color }}
+                  >
+                    {asset.service_type}
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider text-neutral-medium">
+                    {new Date(asset.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
-    </>
+    </div>
   )
 }

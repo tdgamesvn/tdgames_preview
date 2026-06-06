@@ -1,8 +1,4 @@
-import { Rajdhani, JetBrains_Mono } from 'next/font/google'
 import { LoginForm } from '@/components/auth/login-form'
-
-const rajdhani = Rajdhani({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
-const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'] })
 
 export default function LoginPage() {
   return (
@@ -31,8 +27,8 @@ export default function LoginPage() {
         .login-grid-bg {
           background-color: #030810;
           background-image:
-            linear-gradient(rgba(245,158,11,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(245,158,11,0.07) 1px, transparent 1px);
+            linear-gradient(rgba(255,149,0,0.07) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,149,0,0.07) 1px, transparent 1px);
           background-size: 48px 48px;
           animation: grid-pulse 5s ease-in-out infinite;
         }
@@ -40,13 +36,13 @@ export default function LoginPage() {
           position: absolute;
           left: 0; right: 0;
           height: 120px;
-          background: linear-gradient(to bottom, transparent, rgba(245,158,11,0.04), transparent);
+          background: linear-gradient(to bottom, transparent, rgba(255,149,0,0.04), transparent);
           animation: scan 8s linear infinite;
           pointer-events: none;
         }
         .diamond-outer {
           width: 120px; height: 120px;
-          border: 1px solid rgba(245,158,11,0.35);
+          border: 1px solid rgba(255,149,0,0.35);
           transform: rotate(45deg);
           position: relative;
           animation: diamond-spin 24s linear infinite;
@@ -54,8 +50,8 @@ export default function LoginPage() {
         .diamond-inner {
           position: absolute;
           inset: 20px;
-          border: 1px solid rgba(245,158,11,0.15);
-          background: rgba(245,158,11,0.05);
+          border: 1px solid rgba(255,149,0,0.15);
+          background: rgba(255,149,0,0.05);
         }
         .fu1 { animation: fade-up 0.5s ease forwards 0.05s; opacity: 0; }
         .fu2 { animation: fade-up 0.5s ease forwards 0.15s; opacity: 0; }
@@ -67,60 +63,61 @@ export default function LoginPage() {
           width: 100%;
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 6px;
+          border-radius: 12px;
           padding: 11px 14px;
           font-size: 14px;
-          color: #f1f5f9;
+          color: #F2F2F2;
           outline: none;
           transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
           font-family: inherit;
         }
-        .dark-input::placeholder { color: rgba(148,163,184,0.4); }
+        .dark-input::placeholder { color: rgba(157,156,157,0.5); }
         .dark-input:focus {
-          border-color: #f59e0b;
-          background: rgba(245,158,11,0.05);
-          box-shadow: 0 0 0 3px rgba(245,158,11,0.12), 0 0 20px rgba(245,158,11,0.08);
+          border-color: #FF9500;
+          background: rgba(255,149,0,0.05);
+          box-shadow: 0 0 0 3px rgba(255,149,0,0.12), 0 0 20px rgba(255,149,0,0.08);
         }
         .dark-input:autofill, .dark-input:-webkit-autofill {
           -webkit-box-shadow: 0 0 0 30px #141920 inset;
-          -webkit-text-fill-color: #f1f5f9;
+          -webkit-text-fill-color: #F2F2F2;
         }
         .amber-btn {
           width: 100%;
           padding: 12px;
-          background: #f59e0b;
-          color: #0a0a0f;
-          font-weight: 700;
-          font-size: 13px;
+          background: #FF9500;
+          color: #0F0F0F;
+          font-weight: 900;
+          font-size: 12px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           border: none;
-          border-radius: 6px;
+          border-radius: 12px;
           cursor: pointer;
-          transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+          transition: background 0.15s, box-shadow 0.15s;
           font-family: inherit;
+          disabled:opacity: 0.45;
         }
         .amber-btn:hover:not(:disabled) {
-          background: #fbbf24;
-          box-shadow: 0 0 28px rgba(245,158,11,0.45);
+          background: #FF6B00;
+          box-shadow: 0 0 28px rgba(255,149,0,0.4);
         }
-        .amber-btn:active:not(:disabled) { transform: translateY(1px); }
         .amber-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         .form-label {
           display: block;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.15em;
           text-transform: uppercase;
-          color: rgba(148,163,184,0.7);
+          font-weight: 800;
+          color: #9D9C9D;
           margin-bottom: 7px;
         }
         .form-error {
           font-size: 13px;
-          color: #f87171;
+          color: #F44336;
           padding: 10px 12px;
-          background: rgba(248,113,113,0.1);
-          border: 1px solid rgba(248,113,113,0.2);
-          border-radius: 6px;
+          background: rgba(244,67,54,0.08);
+          border: 1px solid rgba(244,67,54,0.2);
+          border-radius: 12px;
         }
       `}</style>
 
@@ -129,7 +126,6 @@ export default function LoginPage() {
           minHeight: '100vh',
           background: '#050a14',
           display: 'flex',
-          fontFamily: rajdhani.style.fontFamily,
         }}
       >
         {/* ── Left decorative panel ── */}
@@ -150,12 +146,12 @@ export default function LoginPage() {
           <div style={{
             position: 'absolute',
             top: 48, left: 48, right: 48, bottom: 48,
-            border: '1px solid rgba(245,158,11,0.12)',
+            border: '1px solid rgba(255,149,0,0.12)',
           }} />
           <div style={{
             position: 'absolute',
             top: 56, left: 56, right: 56, bottom: 56,
-            border: '1px solid rgba(245,158,11,0.05)',
+            border: '1px solid rgba(255,149,0,0.05)',
           }} />
 
           {/* Corner accent dots */}
@@ -166,7 +162,7 @@ export default function LoginPage() {
             <div key={i} style={{
               position: 'absolute', ...pos,
               width: 6, height: 6,
-              background: 'rgba(245,158,11,0.6)',
+              background: 'rgba(255,149,0,0.6)',
               borderRadius: 1,
             }} />
           ))}
@@ -187,11 +183,11 @@ export default function LoginPage() {
             </div>
 
             <div style={{
-              fontFamily: mono.style.fontFamily,
               fontSize: 10,
               letterSpacing: '0.35em',
-              color: 'rgba(245,158,11,0.75)',
+              color: 'rgba(255,149,0,0.75)',
               textTransform: 'uppercase',
+              fontWeight: 800,
               marginBottom: 14,
             }}>
               TDGAME STUDIO
@@ -199,8 +195,8 @@ export default function LoginPage() {
 
             <div style={{
               fontSize: 52,
-              fontWeight: 700,
-              color: '#f8fafc',
+              fontWeight: 900,
+              color: '#F2F2F2',
               lineHeight: 1.05,
               letterSpacing: '-0.02em',
               marginBottom: 18,
@@ -209,8 +205,8 @@ export default function LoginPage() {
             </div>
 
             <div style={{
-              fontSize: 15,
-              color: 'rgba(148,163,184,0.55)',
+              fontSize: 14,
+              color: 'rgba(157,156,157,0.6)',
               lineHeight: 1.7,
               maxWidth: 260,
             }}>
@@ -218,19 +214,17 @@ export default function LoginPage() {
               Art, Animation &amp; VFX deliverables
             </div>
 
-            {/* Tags */}
-            <div style={{
-              display: 'flex', gap: 8, marginTop: 36,
-              fontFamily: mono.style.fontFamily,
-            }}>
+            {/* Service tags */}
+            <div style={{ display: 'flex', gap: 8, marginTop: 36 }}>
               {['ART', 'ANIMATION', 'VFX'].map(tag => (
                 <span key={tag} style={{
                   padding: '4px 10px',
-                  border: '1px solid rgba(245,158,11,0.2)',
-                  borderRadius: 3,
+                  border: '1px solid rgba(255,149,0,0.2)',
+                  borderRadius: 4,
                   fontSize: 9,
                   letterSpacing: '0.2em',
-                  color: 'rgba(245,158,11,0.6)',
+                  fontWeight: 800,
+                  color: 'rgba(255,149,0,0.6)',
                 }}>
                   {tag}
                 </span>
@@ -241,9 +235,8 @@ export default function LoginPage() {
           {/* Bottom status */}
           <div style={{
             position: 'absolute', bottom: 36, left: 64,
-            fontFamily: mono.style.fontFamily,
             fontSize: 10,
-            color: 'rgba(148,163,184,0.35)',
+            color: 'rgba(157,156,157,0.35)',
             letterSpacing: '0.1em',
             lineHeight: 2,
           }}>
@@ -252,10 +245,10 @@ export default function LoginPage() {
               <span className="amber-dot" style={{
                 width: 5, height: 5,
                 borderRadius: '50%',
-                background: '#f59e0b',
+                background: '#FF9500',
                 display: 'inline-block',
               }} />
-              <span style={{ color: 'rgba(245,158,11,0.55)' }}>SECURE CONNECTION</span>
+              <span style={{ color: 'rgba(255,149,0,0.55)' }}>SECURE CONNECTION</span>
             </div>
           </div>
         </div>
@@ -274,11 +267,11 @@ export default function LoginPage() {
           padding: '48px 40px',
           position: 'relative',
         }}>
-          {/* Top amber line */}
+          {/* Top primary line */}
           <div style={{
             position: 'absolute', top: 0, left: 40, right: 40,
             height: 2,
-            background: 'linear-gradient(90deg, transparent, #f59e0b 40%, #fbbf24 60%, transparent)',
+            background: 'linear-gradient(90deg, transparent, #FF9500 40%, #FF6B00 60%, transparent)',
           }} />
 
           {/* Form content */}
@@ -286,19 +279,19 @@ export default function LoginPage() {
             {/* Header */}
             <div className="fu1" style={{ marginBottom: 36 }}>
               <div style={{
-                fontFamily: mono.style.fontFamily,
                 fontSize: 10,
                 letterSpacing: '0.3em',
-                color: 'rgba(245,158,11,0.8)',
+                color: 'rgba(255,149,0,0.8)',
                 textTransform: 'uppercase',
+                fontWeight: 800,
                 marginBottom: 10,
               }}>
                 TDGAME STUDIO
               </div>
               <div style={{
                 fontSize: 30,
-                fontWeight: 700,
-                color: '#f8fafc',
+                fontWeight: 900,
+                color: '#F2F2F2',
                 letterSpacing: '-0.01em',
                 lineHeight: 1.2,
                 marginBottom: 6,
@@ -307,22 +300,21 @@ export default function LoginPage() {
               </div>
               <div style={{
                 fontSize: 14,
-                color: 'rgba(148,163,184,0.55)',
+                color: 'rgba(157,156,157,0.6)',
               }}>
                 Sign in to access your deliverables
               </div>
             </div>
 
             {/* Login form */}
-            <LoginForm monoFont={mono.style.fontFamily} />
+            <LoginForm />
           </div>
 
-          {/* Bottom */}
+          {/* Bottom hint */}
           <div style={{
             position: 'absolute', bottom: 28,
-            fontFamily: mono.style.fontFamily,
             fontSize: 9,
-            color: 'rgba(148,163,184,0.25)',
+            color: 'rgba(157,156,157,0.25)',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
           }}>

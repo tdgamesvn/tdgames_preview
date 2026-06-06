@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AssetGrid } from '@/components/dashboard/asset-grid'
 import { ProjectSettingsForm } from '@/components/dashboard/project-settings-form'
 import { Comments } from '@/components/preview/comments'
-import { Badge } from '@/components/ui/badge'
 import type { PrvProject, PrvClient } from '@/lib/types/database'
 
 export default async function ProjectDetailPage({
@@ -29,22 +29,43 @@ export default async function ProjectDetailPage({
 
   if (!client || !project) notFound()
 
+  const statusColor = project.status === 'active' ? '#4CAF50' : '#9D9C9D'
+
   return (
-    <div className="p-8">
+    <div className="p-8 space-y-6">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-4">
-        <span>{client.name}</span>
-        <span className="mx-2">/</span>
-        <span className="font-medium text-gray-900">{project.name}</span>
+      <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider">
+        <Link
+          href="/dashboard/clients"
+          className="text-neutral-medium hover:text-white transition-colors"
+        >
+          Clients
+        </Link>
+        <span className="text-neutral-dark">›</span>
+        <Link
+          href={`/dashboard/clients/${params.id}`}
+          className="text-neutral-medium hover:text-white transition-colors"
+        >
+          {client.name}
+        </Link>
+        <span className="text-neutral-dark">›</span>
+        <span className="text-white">{project.name}</span>
       </nav>
 
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-2xl font-bold">{project.name}</h1>
-        <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
+      {/* Page heading + status */}
+      <div className="flex items-center gap-3">
+        <h1 className="text-lg font-black uppercase tracking-wider text-white">
+          {project.name}
+        </h1>
+        <span
+          className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
+          style={{ background: `${statusColor}20`, color: statusColor }}
+        >
           {project.status}
-        </Badge>
+        </span>
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="art">
         <TabsList className="mb-6">
           <TabsTrigger value="art">Art</TabsTrigger>
@@ -71,8 +92,10 @@ export default async function ProjectDetailPage({
         </TabsContent>
 
         <TabsContent value="comments">
-          <div className="max-w-2xl">
-            <h2 className="text-lg font-semibold mb-4">Project Comments</h2>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-4">
+              Project Comments
+            </p>
             <Comments projectId={project.id} />
           </div>
         </TabsContent>
