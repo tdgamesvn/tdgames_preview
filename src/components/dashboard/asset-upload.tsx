@@ -8,6 +8,7 @@ import type { ServiceType } from '@/lib/types/database'
 interface AssetUploadProps {
   projectId: string
   serviceType: ServiceType
+  taskId?: string | null
 }
 
 const acceptHint: Record<ServiceType, string> = {
@@ -20,7 +21,7 @@ function getExtension(filename: string): string {
   return filename.split('.').pop()?.toLowerCase() ?? 'bin'
 }
 
-export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
+export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps) {
   const router   = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging,  setDragging]  = useState(false)
@@ -67,6 +68,7 @@ export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
           r2_key:       uniqueKey,
           file_type:    ext,
           metadata:     {},
+          task_id:      taskId ?? null,
         }),
       })
       if (!saveRes.ok) throw new Error('Failed to save asset record')

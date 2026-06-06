@@ -31,9 +31,20 @@ export interface PrvProject {
   created_at: string
 }
 
+export interface PrvTask {
+  id: string
+  project_id: string
+  name: string
+  sort_order: number
+  created_at: string
+}
+
+
+
 export interface PrvAsset {
   id: string
   project_id: string
+  task_id: string | null
   service_type: ServiceType
   name: string
   r2_key: string

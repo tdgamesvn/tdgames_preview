@@ -1,0 +1,38 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import type { PrvTask } from '@/lib/types/database'
+
+type ActionResult<T = null> = { data: T; error: null } | { data: null; error: string }
+
+export async function createTask(input: {
+  project_id: string
+  client_id: string   // for revalidation path
+  name: string
+}): Promise<ActionResult<PrvTask>> {
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { data, error } = await supabase
+    .from('Prv_tasks')
+    .insert({ project_id: input.project_id, name: input.name })
+    .select()
+    .single()
+  if (error) return { data: null, error: error.message }
+  revalidatePath(`/dashboard/clients/${input.client_id}/projects/${input.project_id}`)
+  return { data: data as PrvTask, error: null }
+}
+
+export async function deleteTask(input: {
+  task_id: string
+  project_id: string
+  client_id: string
+}): Promise<ActionResult> {
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase
+    .from('Prv_tasks')
+    .delete()
+    .eq('id', input.task_id)
+  if (error) return { data: null, error: error.message }
+  revalidatePath(`/dashboard/clients/${input.client_id}/projects/${input.project_id}`)
+  return { data: null, error: null }
+}
