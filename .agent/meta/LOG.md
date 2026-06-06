@@ -1,5 +1,19 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (Portal UI/UX polish + Spine fix)
+- CharacterCardItem: fixed 200px → w-full + aspect-ratio 3/4 (responsive)
+- CharacterCardGrid: flex-wrap → CSS grid 2→3→4→5 cols
+- Portal /portal: new ProjectCard with banner, personalised greeting, hover arrow
+- Portal /portal/[pid]: "← All Projects" back link, friendlier description
+- Portal /portal/[pid]/characters/[cid]: breadcrumb, large heading, asset count badges,
+  smart default tab, TabCount, EmptyTab "Check back soon" messaging
+- AssetGridClient: separate readonly empty state vs internal empty state
+- Removed General section from portal /portal/[pid] — clients see only character cards
+- Fix Spine atlas URL bug: presigned URL .replace() invalidated S3 signature →
+  new ?variant=atlas param on download API generates separate presigned URL for .atlas key
+- AssetViewerModal: fetch atlasUrl in separate useEffect, show loading until resolved
+- 42/42 tests pass (+1 atlas variant test), build clean, deployed ✅
+
 ## 2026-06-06 (P8: Character Card Grid + Spine Avatar Preview)
 - DB migration `20260606100000_task_avatar.sql`: 5 avatar columns on Prv_tasks
 - SpineAvatarPreview: client component, IntersectionObserver lazy-init, no controls, onError fallback
