@@ -28,6 +28,7 @@ export function AssetViewerModal({
   onClose,
 }: AssetViewerModalProps) {
   const [presignedUrl, setPresignedUrl] = useState<string | null>(asset.presignedUrl ?? null)
+  const [atlasUrl, setAtlasUrl] = useState<string | null>(null)
   const [artUrls, setArtUrls] = useState<Record<string, string>>({})
   const [lightboxIndex, setLightboxIndex] = useState(
     Math.max(0, allArtAssets.findIndex((a) => a.id === asset.id))
@@ -42,6 +43,15 @@ export function AssetViewerModal({
       .then((url) => { setPresignedUrl(url); setLoading(false) })
       .catch(() => setLoading(false))
   }, [asset.id, asset.presignedUrl])
+
+  // For Spine animation: fetch atlas URL separately (presigned URL signature is path-specific)
+  useEffect(() => {
+    if (asset.service_type !== 'animation' || !spineVersion) return
+    fetch(`/api/assets/${asset.id}/download?variant=atlas`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.url) setAtlasUrl(data.url) })
+      .catch(() => {/* ignore — SpinePlayer will show error */})
+  }, [asset.id, asset.service_type, spineVersion])
 
   // Pre-fetch URLs for all lightbox siblings (art mode only)
   useEffect(() => {
@@ -107,16 +117,21 @@ export function AssetViewerModal({
             </div>
           )}
 
-          {!loading && presignedUrl && asset.service_type === 'animation' && spineVersion && (
+          {!loading && presignedUrl && asset.service_type === 'animation' && spineVersion && atlasUrl && (
             <SpinePlayer
               skeletonUrl={presignedUrl}
-              atlasUrl={presignedUrl.replace(/\.[^.]+$/, '.atlas')}
+              atlasUrl={atlasUrl}
               animations={(asset.metadata as any)?.animations ?? []} // eslint-disable-line @typescript-eslint/no-explicit-any
               skins={(asset.metadata as any)?.skins ?? ['default']} // eslint-disable-line @typescript-eslint/no-explicit-any
               spineVersion={spineVersion}
               assetName={asset.name}
               onDownload={() => handleDownload(asset.id)}
             />
+          )}
+          {!loading && presignedUrl && asset.service_type === 'animation' && spineVersion && !atlasUrl && (
+            <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+              Loading Spine assets…
+            </div>
           )}
 
           {!loading && presignedUrl && asset.service_type === 'vfx' && (
