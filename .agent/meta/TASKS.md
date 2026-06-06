@@ -23,8 +23,8 @@
   - [x] VPS: clone → .env.production → npm build → pm2 start
   - [x] nginx proxy preview.tdgamestudio.com → 127.0.0.1:3001
   - [x] PM2 startup on reboot
-  - [ ] Supabase migration apply (cần làm thủ công qua Dashboard)
-  - [ ] Tạo tài khoản internal đầu tiên trên Supabase Auth
+  - [x] Supabase migration apply — confirmed applied (20260605140940)
+  - [x] Tạo tài khoản internal — tdgames.vn@gmail.com, role=internal, display_name="TDGame Studio"
 - [x] P4: Client Portal + Share — COMPLETE
   - [x] Task 1: Portal layout — header với display_name + logout
   - [x] Task 2: Portal projects list — grid dự án của client

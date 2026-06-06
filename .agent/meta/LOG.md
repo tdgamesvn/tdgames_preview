@@ -1,5 +1,40 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (UI/UX + Mobile)
+- P6: UI/UX Redesign + Full Mobile Responsive
+  - Font: Plus Jakarta Sans thay Montserrat (distinctive, premium)
+  - globals.css: warm radial bg glow, custom scrollbar, card/button/tab/dialog CSS overrides
+  - Sidebar: gradient logo icon, left-border active state, orange glow
+  - dashboard/page.tsx: hero header, KPI cards, recent uploads redesign
+  - client-form, project-settings-form, asset-upload: remove shadcn defaults, full dark styling
+  - DashboardShell (new): Client Component quản lý mobile sidebar overlay + hamburger menu
+  - Sidebar: onClose prop, X button, onClick trên nav items để auto-close
+  - layout.tsx: dùng DashboardShell thay vì render Sidebar trực tiếp
+  - Tất cả trang: p-4 sm:p-6 md:p-8 responsive padding
+  - dashboard/page.tsx: grid-cols-1 sm:grid-cols-3 cho KPI
+  - Portal + Share: responsive header + main padding
+  - Fix bug: onMouseEnter/Leave trong Server Component → CSS .kpi-card/.list-row
+  - 38/38 tests pass, build clean, deployed
+
+## 2026-06-06
+- Áp dụng STYLE_GUIDE toàn bộ app (P5: Style Guide Refactor)
+  - tailwind.config.ts: color tokens (#FF9500, bg/surface/neutral-*/status-*) + Montserrat
+  - globals.css: dark-only CSS vars (--popover, --muted, --card, v.v.), bỏ light-mode
+  - layout.tsx: load Montserrat qua next/font/google, class font-montserrat trên body
+  - sidebar.tsx: đã compliant, commit kèm
+  - Dashboard layout: bg-bg thay gradient #0a0804
+  - dashboard/page.tsx: xoá <style> block + Rajdhani/Audiowide; KPI cards + list rows đúng style guide
+  - clients/page.tsx: dark list panel, XS buttons, empty state
+  - clients/[id]/page.tsx: project cards tối, status badge, empty state
+  - clients/[id]/projects/[pid]/page.tsx: breadcrumb + heading tối
+  - portal layout: dark header với primary badge
+  - portal/page.tsx: project grid tối
+  - portal/[pid]/page.tsx: heading + status badge + tabs tối
+  - share/[token]/page.tsx: dark header + layout
+  - login/page.tsx: xoá Rajdhani/JetBrains Mono → Montserrat; amber #f59e0b → #FF9500
+  - login-form.tsx: xoá monoFont prop
+  - 38/38 tests pass, build clean, pushed GitHub
+
 ## 2026-06-05
 - Khởi tạo dự án, viết design spec đầy đủ (roles, DB schema, UI structure, asset preview)
 - Brainstorm kiến trúc: Next.js 14 App Router + Supabase SSR + Cloudflare R2 + Docker
