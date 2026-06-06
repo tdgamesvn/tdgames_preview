@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Upload, CheckCircle2, Loader2 } from 'lucide-react'
 import type { ServiceType } from '@/lib/types/database'
 
 interface AssetUploadProps {
@@ -9,41 +10,44 @@ interface AssetUploadProps {
   serviceType: ServiceType
 }
 
+const acceptHint: Record<ServiceType, string> = {
+  art:       'PNG · JPG · PSD',
+  animation: 'Spine JSON · .skel · .atlas · textures',
+  vfx:       'GIF · MP4 · WebM · Unity Package',
+}
+
 function getExtension(filename: string): string {
   return filename.split('.').pop()?.toLowerCase() ?? 'bin'
 }
 
 export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
-  const router = useRouter()
+  const router   = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
-  const [dragging, setDragging] = useState(false)
+  const [dragging,  setDragging]  = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [progress,  setProgress]  = useState<string | null>(null)
+  const [done,      setDone]      = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
 
   async function uploadFile(file: File) {
     setUploading(true)
+    setDone(false)
     setError(null)
     setProgress(`Preparing ${file.name}…`)
 
     try {
-      const ext = getExtension(file.name)
+      const ext       = getExtension(file.name)
       const uniqueKey = `assets/${projectId}/${Date.now()}-${file.name}`
 
-      // 1. Get presigned PUT URL
       setProgress('Getting upload URL…')
       const presignRes = await fetch('/api/upload/presign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          key: uniqueKey,
-          contentType: file.type || 'application/octet-stream',
-        }),
+        body: JSON.stringify({ key: uniqueKey, contentType: file.type || 'application/octet-stream' }),
       })
       if (!presignRes.ok) throw new Error('Failed to get upload URL')
       const { url } = await presignRes.json()
 
-      // 2. Upload directly to R2
       setProgress(`Uploading ${file.name}…`)
       const uploadRes = await fetch(url, {
         method: 'PUT',
@@ -52,29 +56,29 @@ export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
       })
       if (!uploadRes.ok) throw new Error('R2 upload failed')
 
-      // 3. Save asset record to Supabase
       setProgress('Saving record…')
       const saveRes = await fetch('/api/assets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          project_id: projectId,
+          project_id:   projectId,
           service_type: serviceType,
-          name: file.name,
-          r2_key: uniqueKey,
-          file_type: ext,
-          metadata: {},
+          name:         file.name,
+          r2_key:       uniqueKey,
+          file_type:    ext,
+          metadata:     {},
         }),
       })
       if (!saveRes.ok) throw new Error('Failed to save asset record')
 
-      setProgress(`✓ ${file.name} uploaded`)
+      setDone(true)
+      setProgress(`${file.name} uploaded`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
-      setTimeout(() => setProgress(null), 3000)
+      setTimeout(() => { setProgress(null); setDone(false) }, 3500)
     }
   }
 
@@ -86,34 +90,54 @@ export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
+      {/* ── Drop zone ──────────────────────────────────── */}
       <div
-        onDragOver={(e) => {
-          e.preventDefault()
-          setDragging(true)
-        }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault()
-          setDragging(false)
-          handleFiles(e.dataTransfer.files)
+        onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+        onClick={() => !uploading && inputRef.current?.click()}
+        className="relative rounded-2xl transition-all cursor-pointer select-none"
+        style={{
+          padding: '32px 24px',
+          textAlign: 'center',
+          border: dragging
+            ? '1.5px dashed rgba(255,149,0,0.6)'
+            : '1.5px dashed rgba(255,255,255,0.1)',
+          background: dragging
+            ? 'rgba(255,149,0,0.05)'
+            : 'rgba(255,255,255,0.02)',
+          boxShadow: dragging ? '0 0 20px rgba(255,149,0,0.1)' : 'none',
         }}
-        onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          dragging
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
-        }`}
       >
-        <p className="text-sm text-gray-600">
-          {uploading ? progress : 'Drop files here or click to browse'}
-        </p>
-        {!uploading && (
-          <p className="text-xs text-gray-400 mt-1">
-            {serviceType === 'art' && 'PNG, JPG, PSD'}
-            {serviceType === 'animation' && 'Spine JSON, .skel, .atlas, textures'}
-            {serviceType === 'vfx' && 'GIF, MP4, WebM, Unity Package'}
-          </p>
+        {/* Icon */}
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+        >
+          {uploading ? (
+            <Loader2 size={18} className="animate-spin" style={{ color: '#FF9500' }} />
+          ) : done ? (
+            <CheckCircle2 size={18} style={{ color: '#22C55E' }} />
+          ) : (
+            <Upload size={18} style={{ color: dragging ? '#FF9500' : '#555' }} />
+          )}
+        </div>
+
+        {/* Text */}
+        {uploading ? (
+          <p className="text-sm font-medium" style={{ color: '#888' }}>{progress}</p>
+        ) : done ? (
+          <p className="text-sm font-medium" style={{ color: '#22C55E' }}>{progress}</p>
+        ) : (
+          <>
+            <p className="text-sm font-medium" style={{ color: dragging ? '#FF9500' : '#888' }}>
+              {dragging ? 'Release to upload' : 'Drop files here or click to browse'}
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#444' }}>
+              {acceptHint[serviceType]}
+            </p>
+          </>
         )}
       </div>
 
@@ -125,9 +149,14 @@ export function AssetUpload({ projectId, serviceType }: AssetUploadProps) {
         onChange={(e) => handleFiles(e.target.files)}
       />
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {progress && !error && (
-        <p className="text-sm text-green-600">{progress}</p>
+      {/* Error */}
+      {error && (
+        <div
+          className="rounded-xl px-3 py-2 text-xs font-medium"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}
+        >
+          {error}
+        </div>
       )}
     </div>
   )
