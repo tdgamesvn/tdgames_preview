@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Eye, Download } from 'lucide-react'
 import { AssetViewerModal } from '@/components/preview/asset-viewer-modal'
-import { SpinePlayer } from '@/components/preview/spine-player'
+import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
 import type { PrvAsset, ServiceType } from '@/lib/types/database'
 
 function stripExt(name: string): string {
@@ -84,17 +84,14 @@ export function AssetGridClient({
         <div className="space-y-8">
           {jsonSets.map(json => {
             const base = stripExt(json.name)
-            const jsonUrl = `/api/spine/${json.task_id}/${encodeURIComponent(json.name)}`
-            const atlasUrl = `/api/spine/${json.task_id}/${encodeURIComponent(`${base}.atlas`)}`
             const setFiles = assets.filter(a => stripExt(a.name) === base)
             return (
               <div key={json.id} className="space-y-2">
-                <SpinePlayer
-                  skeletonUrl={jsonUrl}
-                  atlasUrl={atlasUrl}
+                <SpineAnimationGallery
+                  taskId={json.task_id!}
+                  jsonName={json.name}
+                  atlasName={`${base}.atlas`}
                   spineVersion={spineVersion}
-                  assetName={json.name}
-                  onDownload={() => downloadAsset(json.id, json.name)}
                 />
                 <details className="text-xs" style={{ color: '#666' }}>
                   <summary className="cursor-pointer select-none py-1 hover:text-white transition-colors">
