@@ -15,6 +15,11 @@ interface SpineAvatarPreviewProps {
   scale?: number
   offsetX?: number
   offsetY?: number
+  /** When true, let the Spine player auto-fit each animation's bounds to the
+   *  box (per-animation + per-character sizing) instead of a fixed viewport. */
+  autoFit?: boolean
+  /** Canvas clear color (hex, 8-digit allows alpha). Default transparent. */
+  backgroundColor?: string
   spineVersion: string
   onError?: () => void
   /** Called once the skeleton is loaded, exposing its animations + skins. */
@@ -35,6 +40,8 @@ export function SpineAvatarPreview({
   scale = 1,
   offsetX = 0,
   offsetY = 0,
+  autoFit = false,
+  backgroundColor = '#00000000',
   spineVersion,
   onError,
   onLoaded,
@@ -96,19 +103,23 @@ export function SpineAvatarPreview({
           animation: animationName || undefined,
           skin: skinName || undefined,
           showControls: false,
-          backgroundColor: '#00000000',
+          backgroundColor,
           premultipliedAlpha: true,
           defaultMix: 0.2,
-          viewport: {
-            x: -100 * scale + offsetX,
-            y: -100 * scale + offsetY,
-            width: 200 * scale,
-            height: 200 * scale,
-            padLeft: '0%',
-            padRight: '0%',
-            padTop: '0%',
-            padBottom: '0%',
-          },
+          // autoFit: omit numeric bounds → player auto-computes the current
+          // animation's bounding box and fits it (with padding) into the box.
+          viewport: autoFit
+            ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
+            : {
+                x: -100 * scale + offsetX,
+                y: -100 * scale + offsetY,
+                width: 200 * scale,
+                height: 200 * scale,
+                padLeft: '0%',
+                padRight: '0%',
+                padTop: '0%',
+                padBottom: '0%',
+              },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           success: (player: any) => {
             if (cancelled) return
@@ -139,7 +150,7 @@ export function SpineAvatarPreview({
       cancelled = true
       observer.disconnect()
     }
-  }, [jsonUrl, atlasUrl, animationName, skinName, scale, offsetX, offsetY, spineVersion])
+  }, [jsonUrl, atlasUrl, animationName, skinName, scale, offsetX, offsetY, autoFit, backgroundColor, spineVersion])
 
   return (
     <div

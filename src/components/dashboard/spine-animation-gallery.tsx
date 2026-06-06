@@ -28,7 +28,18 @@ export function SpineAnimationGallery({
   const [animations, setAnimations] = useState<string[]>([])
   const [skins, setSkins] = useState<string[]>([])
   const [skin, setSkin] = useState<string>('')
+  const [bg, setBg] = useState<string>('#00000000')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+
+  const BACKGROUNDS: { label: string; value: string }[] = [
+    { label: 'Transparent', value: '#00000000' },
+    { label: 'Dark', value: '#16161aff' },
+    { label: 'Gray', value: '#3a3a3aff' },
+    { label: 'White', value: '#ffffffff' },
+    { label: 'Green', value: '#00b140ff' },
+  ]
+  // CSS color for the cell wrapper (transparent → show the dark cell bg)
+  const cellBg = bg === '#00000000' ? 'rgba(255,255,255,0.02)' : `#${bg.slice(1, 7)}`
 
   useEffect(() => {
     let cancelled = false
@@ -68,40 +79,59 @@ export function SpineAnimationGallery({
 
   return (
     <div className="space-y-4">
-      {/* Skin selector (only when the skeleton has real skins) */}
-      {realSkins.length > 0 && (
+      {/* Controls: background always; skin only when the skeleton has real skins */}
+      <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
-            Skin
+            Background
           </label>
           <select
-            value={skin}
-            onChange={e => setSkin(e.target.value)}
+            value={bg}
+            onChange={e => setBg(e.target.value)}
             className="px-3 py-1.5 rounded-lg text-sm text-white outline-none"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
-            <option value="">— Default —</option>
-            {realSkins.map(s => (
-              <option key={s} value={s}>{s}</option>
+            {BACKGROUNDS.map(b => (
+              <option key={b.value} value={b.value}>{b.label}</option>
             ))}
           </select>
         </div>
-      )}
+        {realSkins.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
+              Skin
+            </label>
+            <select
+              value={skin}
+              onChange={e => setSkin(e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-sm text-white outline-none"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              <option value="">— Default —</option>
+              {realSkins.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {/* One looping view per animation */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {animations.map(anim => (
           <div
-            key={`${anim}-${skin}`}
+            key={`${anim}-${skin}-${bg}`}
             className="rounded-xl overflow-hidden flex flex-col"
             style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
-            <div className="aspect-square relative" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            <div className="aspect-square relative" style={{ background: cellBg }}>
               <SpineAvatarPreview
                 jsonUrl={jsonUrl}
                 atlasUrl={atlasUrl}
                 animationName={anim}
                 skinName={skin}
+                autoFit
+                backgroundColor={bg}
                 spineVersion={spineVersion}
               />
             </div>
