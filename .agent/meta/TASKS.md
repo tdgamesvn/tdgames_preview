@@ -4,6 +4,15 @@
 (none — all phases complete ✅)
 
 ## Done
+- [x] P8: Character Card Grid + Spine Avatar Preview — COMPLETE
+  - [x] DB migration: avatar columns on Prv_tasks
+  - [x] SpineAvatarPreview component (lazy, no controls)
+  - [x] CharacterCardItem + CharacterCardGrid server component
+  - [x] AvatarConfigPanel (dashboard only, live preview)
+  - [x] Portal /portal/[pid]/characters/[cid] route
+  - [x] Dashboard /dashboard/.../[pid]/characters/[cid] route
+  - [x] Updated portal + dashboard [pid] pages (card grid + presigned URL bug fix)
+  - [x] 41/41 tests pass, build clean, committed
 - [x] Design spec — `docs/superpowers/specs/2026-06-05-preview-app-design.md`
 - [x] P1 implementation plan — `docs/superpowers/plans/2026-06-05-p1-foundation-auth.md`
 - [x] Next.js 14 scaffold (create-next-app + Supabase deps + shadcn/ui + Jest)

@@ -1,5 +1,17 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (P8: Character Card Grid + Spine Avatar Preview)
+- DB migration `20260606100000_task_avatar.sql`: 5 avatar columns on Prv_tasks
+- SpineAvatarPreview: client component, IntersectionObserver lazy-init, no controls, onError fallback
+- CharacterCardItem: 200×260px card, Spine→art→placeholder fallback, orange glow hover, click → navigate
+- CharacterCardGrid: server component, parallel presigned URL resolution (json + atlas + art thumbnail)
+- AvatarConfigPanel: dashboard-only, asset/animation dropdowns, scale+offset sliders, live preview canvas
+- New route /portal/[pid]/characters/[cid] — read-only tabs Art/Animation/VFX
+- New route /dashboard/.../[pid]/characters/[cid] — full CRUD + AvatarConfigPanel
+- Portal /portal/[pid]: replaced accordion with CharacterCardGrid, fix presigned URLs for General art
+- Dashboard /[pid]: replaced inline CharacterCard with CharacterCardGrid + delete buttons row
+- 41/41 tests pass (3 new for updateTaskAvatar), build clean (16 routes), committed f437e63
+
 ## 2026-06-06 (UX: Batch Characters + Dark Cards + Internal Preview)
 - Batch character add: TaskManager dùng textarea comma/newline separated → createTasksBatch single INSERT
 - AssetGridClient: restyle dark theme, orange hover border, "Preview" eye icon hint on hover
