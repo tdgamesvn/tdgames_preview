@@ -13,12 +13,17 @@ interface AssetUploadProps {
 
 const acceptHint: Record<ServiceType, string> = {
   art:       'PNG · JPG · PSD',
-  animation: 'Spine JSON · .skel · .atlas · textures',
+  animation: 'Spine JSON · .atlas · textures',
   vfx:       'GIF · MP4 · WebM · Unity Package',
 }
 
 function getExtension(filename: string): string {
-  return filename.split('.').pop()?.toLowerCase() ?? 'bin'
+  // Handle .atlas.txt → atlas, .skel.bytes → skel, etc.
+  const parts = filename.split('.')
+  if (parts.length >= 3 && ['txt', 'bytes'].includes(parts[parts.length - 1])) {
+    return parts[parts.length - 2].toLowerCase()
+  }
+  return parts.pop()?.toLowerCase() ?? 'bin'
 }
 
 export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps) {
@@ -34,44 +39,30 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
     setUploading(true)
     setDone(false)
     setError(null)
-    setProgress(`Preparing ${file.name}…`)
+    setProgress(`Uploading ${file.name}…`)
 
     try {
       const ext       = getExtension(file.name)
       const uniqueKey = `assets/${projectId}/${Date.now()}-${file.name}`
 
-      setProgress('Getting upload URL…')
-      const presignRes = await fetch('/api/upload/presign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: uniqueKey, contentType: file.type || 'application/octet-stream' }),
-      })
-      if (!presignRes.ok) throw new Error('Failed to get upload URL')
-      const { url } = await presignRes.json()
+      const formData = new FormData()
+      formData.append('file',         file)
+      formData.append('project_id',   projectId)
+      formData.append('service_type', serviceType)
+      formData.append('r2_key',       uniqueKey)
+      formData.append('name',         file.name)
+      formData.append('file_type',    ext)
+      formData.append('task_id',      taskId ?? 'null')
 
-      setProgress(`Uploading ${file.name}…`)
-      const uploadRes = await fetch(url, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      })
-      if (!uploadRes.ok) throw new Error('R2 upload failed')
-
-      setProgress('Saving record…')
-      const saveRes = await fetch('/api/assets', {
+      const res = await fetch('/api/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          project_id:   projectId,
-          service_type: serviceType,
-          name:         file.name,
-          r2_key:       uniqueKey,
-          file_type:    ext,
-          metadata:     {},
-          task_id:      taskId ?? null,
-        }),
+        body:   formData,
       })
-      if (!saveRes.ok) throw new Error('Failed to save asset record')
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error ?? "Upload failed (" + res.status + ")")
+      }
 
       setDone(true)
       setProgress(`${file.name} uploaded`)
@@ -93,7 +84,6 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
 
   return (
     <div className="space-y-2">
-      {/* ── Drop zone ──────────────────────────────────── */}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
@@ -101,22 +91,15 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
         onClick={() => !uploading && inputRef.current?.click()}
         className="relative rounded-2xl transition-all cursor-pointer select-none"
         style={{
-          padding: '32px 24px',
+          padding: '28px 24px',
           textAlign: 'center',
-          border: dragging
-            ? '1.5px dashed rgba(255,149,0,0.6)'
-            : '1.5px dashed rgba(255,255,255,0.1)',
-          background: dragging
-            ? 'rgba(255,149,0,0.05)'
-            : 'rgba(255,255,255,0.02)',
-          boxShadow: dragging ? '0 0 20px rgba(255,149,0,0.1)' : 'none',
+          border:     dragging ? '1.5px dashed rgba(255,149,0,0.6)' : '1.5px dashed rgba(255,255,255,0.1)',
+          background: dragging ? 'rgba(255,149,0,0.05)' : 'rgba(255,255,255,0.02)',
+          boxShadow:  dragging ? '0 0 20px rgba(255,149,0,0.1)' : 'none',
         }}
       >
-        {/* Icon */}
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
           {uploading ? (
             <Loader2 size={18} className="animate-spin" style={{ color: '#FF9500' }} />
           ) : done ? (
@@ -126,7 +109,6 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
           )}
         </div>
 
-        {/* Text */}
         {uploading ? (
           <p className="text-sm font-medium" style={{ color: '#888' }}>{progress}</p>
         ) : done ? (
@@ -136,27 +118,17 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
             <p className="text-sm font-medium" style={{ color: dragging ? '#FF9500' : '#888' }}>
               {dragging ? 'Release to upload' : 'Drop files here or click to browse'}
             </p>
-            <p className="text-xs mt-1" style={{ color: '#444' }}>
-              {acceptHint[serviceType]}
-            </p>
+            <p className="text-xs mt-1" style={{ color: '#444' }}>{acceptHint[serviceType]}</p>
           </>
         )}
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
-      />
+      <input ref={inputRef} type="file" multiple className="hidden"
+        onChange={(e) => handleFiles(e.target.files)} />
 
-      {/* Error */}
       {error && (
-        <div
-          className="rounded-xl px-3 py-2 text-xs font-medium"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}
-        >
+        <div className="rounded-xl px-3 py-2 text-xs font-medium"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
           {error}
         </div>
       )}
