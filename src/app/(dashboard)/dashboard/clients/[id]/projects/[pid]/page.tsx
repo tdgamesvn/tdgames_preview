@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AssetGrid } from '@/components/dashboard/asset-grid'
 import { ProjectSettingsForm } from '@/components/dashboard/project-settings-form'
 import { Comments } from '@/components/preview/comments'
 import { TaskManager } from '@/components/dashboard/task-manager'
@@ -123,53 +122,14 @@ export default async function ProjectDetailPage({
               </div>
             )}
 
-            {/* General (ungrouped) — always shown */}
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.07)',
-              }}
-            >
-              <div
-                className="flex items-center justify-between px-5 py-3.5"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#555' }} />
-                  <span className="text-sm font-semibold text-white">General</span>
-                  <span
-                    className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                    style={{ background: 'rgba(255,255,255,0.06)', color: '#888' }}
-                  >
-                    ungrouped
-                  </span>
-                </div>
-              </div>
-              <div className="p-5 space-y-6">
-                {(['art', 'animation', 'vfx'] as const).map(st => (
-                  <div key={st}>
-                    <p
-                      className="text-[10px] font-semibold uppercase tracking-widest mb-3"
-                      style={{ color: '#555' }}
-                    >
-                      {st === 'art' ? '🖼 Art' : st === 'animation' ? '🦴 Animation' : '🎬 VFX'}
-                    </p>
-                    <AssetGrid
-                      projectId={project.id}
-                      serviceType={st}
-                      spineVersion={st === 'animation' ? project.spine_version : null}
-                      taskId={null}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {taskList.length === 0 && (
-              <p className="text-xs text-center py-4" style={{ color: '#444' }}>
-                No characters yet — add one above, or upload directly to General
-              </p>
+              <div className="text-center py-12">
+                <p className="text-3xl mb-3 opacity-30">🎭</p>
+                <p className="text-sm font-semibold" style={{ color: '#555' }}>No characters yet</p>
+                <p className="text-xs mt-1" style={{ color: '#333' }}>
+                  Add characters above, then upload assets to each one.
+                </p>
+              </div>
             )}
           </div>
         </TabsContent>
