@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { fetchJsonArray } from '@/lib/safe-fetch'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
 
@@ -26,14 +27,12 @@ export function Comments({ projectId, assetId = null }: CommentsProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch(`/api/projects/${projectId}/comments`)
-      .then((r) => r.json())
-      .then((data: Comment[]) => {
-        const filtered = assetId
-          ? data.filter((c) => c.asset_id === assetId)
-          : data.filter((c) => c.asset_id === null)
-        setComments(filtered)
-      })
+    fetchJsonArray<Comment>(`/api/projects/${projectId}/comments`).then((list) => {
+      const filtered = assetId
+        ? list.filter((c) => c.asset_id === assetId)
+        : list.filter((c) => c.asset_id === null)
+      setComments(filtered)
+    })
   }, [projectId, assetId])
 
   useEffect(() => {

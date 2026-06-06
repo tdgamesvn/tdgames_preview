@@ -45,11 +45,20 @@ describe('GET /api/projects/[id]/comments', () => {
       eq: jest.fn().mockReturnThis(),
       order: jest.fn().mockResolvedValue({ data: fakeComments, error: null }),
     })
+    // Author display names are resolved separately via the admin client
+    mockAdminFrom.mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      in: jest.fn().mockResolvedValue({
+        data: [{ id: 'u1', display_name: 'Alice' }],
+        error: null,
+      }),
+    })
     const res = await GET(makeReq(), { params: { id: 'p1' } })
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toHaveLength(1)
     expect(json[0].content).toBe('Looks great!')
+    expect(json[0].Prv_profiles.display_name).toBe('Alice')
   })
 
   it('returns 401 when not authenticated', async () => {

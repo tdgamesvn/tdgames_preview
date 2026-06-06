@@ -19,8 +19,12 @@ export async function AssetGrid({ projectId, serviceType, spineVersion, taskId }
     .eq('project_id', projectId)
     .eq('service_type', serviceType)
 
-  if (taskId !== undefined) {
-    query = query.is('task_id', taskId)
+  if (taskId === null) {
+    // ungrouped assets → task_id IS NULL
+    query = query.is('task_id', null)
+  } else if (taskId !== undefined) {
+    // specific task → task_id = <uuid>  (.is() only supports null/boolean)
+    query = query.eq('task_id', taskId)
   }
 
   const { data: assets } = (await query

@@ -145,3 +145,10 @@
   - Task 6: AssetViewerModal (unified — routes to correct viewer by service_type)
   - Task 7: Comments component (Supabase Realtime subscription)
   - Task 8: Wire dashboard — AssetGridClient (clickable cards) + Comments tab
+
+## 2026-06-06 (Bugfix — character page + comments)
+- Điều tra crash "client-side exception" khi click card nhân vật (systematic-debugging + Supabase API logs)
+- Bug A: asset-grid.tsx dùng `.is('task_id', <uuid>)` — `.is()` chỉ hợp lệ với null/boolean → PostgREST 400 → trang dashboard character KHÔNG load được asset (xác nhận 3×400 trong logs). Fix: `.eq()` cho uuid, `.is(null)` cho ungrouped.
+- Bug B: API /projects/[id]/comments dùng embed `Prv_profiles(display_name)` nhưng thiếu FK → 400 → route trả {error} → Comments component gọi `data.filter` trên object → CRASH. Fix: bỏ embed, tra display_name riêng qua admin client + guard Array.isArray trong component.
+- 42/42 tests pass, typecheck sạch (lỗi shadcn/ui base-ui là pre-existing).
+- CHƯA bắt được đúng stack trace của crash khi click card (logs server không chứa lỗi JS trình duyệt; không có .env.local để chạy cục bộ). Cần retest sau deploy / hoặc console log.
