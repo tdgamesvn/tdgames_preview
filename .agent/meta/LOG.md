@@ -1,5 +1,10 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Animation tab — gallery tự render MỌI animation)
+- Theo yêu cầu user: tab Animation tự render **mỗi animation 1 ô loop riêng + tên bên dưới**, bỏ dropdown chuyển animation thủ công, **chỉ giữ 1 dropdown Skin** áp cho tất cả.
+- Component mới `spine-animation-gallery.tsx`: fetch skeleton `.json` (proxy) → đọc `Object.keys(animations)` + skins (array 4.x hoặc object 3.x) → lưới SpineAvatarPreview, mỗi ô 1 animation (IntersectionObserver defer init nên không nặng). `AssetGridClient` nhánh animation dùng gallery thay SpinePlayer; vẫn giữ `<details>` Source files.
+- Commit `d508af5`. Deploy success (VPS=d508af5). Typecheck + lint sạch.
+
 ## 2026-06-07 (Animation tab — hiển thị Spine player inline thay vì 3 file)
 - Theo yêu cầu user: tab Animation không liệt kê json/png/atlas nữa mà **render Spine player chạy luôn** (controls animation/skin built-in). `AssetGridClient` gom file theo base name → mỗi set có .json = 1 player (proxy URL `/api/spine/<taskId>/<name>`). File nguồn gom vào `<details>` "Source files" thu gọn (download + delete vẫn dùng được cho nội bộ). Áp dụng cả dashboard + portal.
 - Commit `be7b549`. Deploy success (VPS=be7b549). Typecheck + lint sạch.
