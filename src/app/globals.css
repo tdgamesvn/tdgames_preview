@@ -103,6 +103,12 @@ body {
 }
 
 /* ─── Tab primitives (base-ui) ───────────────────────────── */
+/* base-ui sets data-orientation="horizontal", not data-horizontal,
+   so the cva flex-col never fires → override here */
+[data-slot="tabs"] {
+  flex-direction: column !important;
+}
+
 [data-slot="tabs-list"] {
   background: rgba(255,255,255,0.04) !important;
   border: 1px solid rgba(255,255,255,0.07) !important;
