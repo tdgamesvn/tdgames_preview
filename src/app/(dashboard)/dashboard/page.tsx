@@ -68,22 +68,7 @@ export default async function DashboardPage() {
             <Link
               key={label}
               href={href}
-              className="group rounded-2xl p-5 transition-all"
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              }}
-              onMouseEnter={e => {
-                const el = e.currentTarget as HTMLElement
-                el.style.borderColor = 'rgba(255,255,255,0.12)'
-                el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)'
-              }}
-              onMouseLeave={e => {
-                const el = e.currentTarget as HTMLElement
-                el.style.borderColor = 'rgba(255,255,255,0.07)'
-                el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
-              }}
+              className="kpi-card p-5"
             >
               <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: '#555' }}>
                 {label}
@@ -134,12 +119,10 @@ export default async function DashboardPage() {
                 return (
                   <div
                     key={asset.id}
-                    className="flex items-center justify-between px-5 py-3.5 transition-colors"
+                    className="list-row flex items-center justify-between px-5 py-3.5"
                     style={{
                       borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '' }}
                   >
                     {/* Left */}
                     <div className="flex items-center gap-3 min-w-0">
