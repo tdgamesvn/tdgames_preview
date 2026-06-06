@@ -23,6 +23,7 @@ jobs:
 
             echo "📥 Pulling latest code (main)..."
             git fetch origin main
+            git checkout -B main origin/main
             git reset --hard origin/main
 
             echo "🚀 Running atomic deploy script..."
