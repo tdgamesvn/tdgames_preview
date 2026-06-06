@@ -37,3 +37,6 @@ next-env.d.ts
 
 # agent internal
 .superpowers/
+
+# Playwright MCP page snapshots
+.playwright-mcp/
