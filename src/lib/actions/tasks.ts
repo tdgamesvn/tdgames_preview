@@ -22,6 +22,22 @@ export async function createTask(input: {
   return { data: data as PrvTask, error: null }
 }
 
+export async function createTasksBatch(input: {
+  project_id: string
+  client_id: string
+  names: string[]   // already trimmed, non-empty
+}): Promise<ActionResult<PrvTask[]>> {
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const rows = input.names.map((name, i) => ({ project_id: input.project_id, name, sort_order: i }))
+  const { data, error } = await supabase
+    .from('Prv_tasks')
+    .insert(rows)
+    .select()
+  if (error) return { data: null, error: error.message }
+  revalidatePath(`/dashboard/clients/${input.client_id}/projects/${input.project_id}`)
+  return { data: data as PrvTask[], error: null }
+}
+
 export async function deleteTask(input: {
   task_id: string
   project_id: string

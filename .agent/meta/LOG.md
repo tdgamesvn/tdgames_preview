@@ -1,5 +1,13 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (CORS Fix + Deploy)
+- Fix: R2 CORS "Failed to fetch" khi upload trực tiếp từ browser
+  - Chuyển sang proxy upload qua server (Option B)
+  - Tạo `/api/upload/route.ts`: nhận FormData, upload R2 server-side, insert Supabase
+  - Rewrite `AssetUpload` component: dùng `FormData` POST → `/api/upload` (không cần presign)
+  - Commit: `fix: switch to server-side proxy upload — fix R2 CORS "Failed to fetch"`
+  - Deploy thành công lên vps6core: build clean 14 routes, PM2 restart ✅
+
 ## 2026-06-06 (UI/UX + Mobile)
 - P6: UI/UX Redesign + Full Mobile Responsive
   - Font: Plus Jakarta Sans thay Montserrat (distinctive, premium)

@@ -13,12 +13,14 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
   if (!user) redirect('/login')
 
   const { data: profile } = (await supabase
-    .from('Prv_profiles').select('client_id').eq('id', user.id).single()) as { data: Pick<PrvProfile, 'client_id'> | null }
+    .from('Prv_profiles').select('client_id, role').eq('id', user.id).single()) as { data: Pick<PrvProfile, 'client_id' | 'role'> | null }
 
   const { data: project } = (await supabase
     .from('Prv_projects').select('*').eq('id', params.pid).single()) as { data: PrvProject | null }
 
-  if (!project || project.client_id !== profile?.client_id) notFound()
+  // Internal users can preview any project; clients are restricted to their own
+  const isInternal = profile?.role === 'internal'
+  if (!project || (!isInternal && project.client_id !== profile?.client_id)) notFound()
 
   const [{ data: assets }, { data: tasks }] = await Promise.all([
     supabase.from('Prv_assets').select('*').eq('project_id', project.id).order('sort_order').order('created_at') as Promise<{ data: PrvAsset[] | null }>,

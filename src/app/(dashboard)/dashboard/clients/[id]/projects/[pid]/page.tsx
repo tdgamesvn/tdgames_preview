@@ -8,7 +8,7 @@ import { Comments } from '@/components/preview/comments'
 import { TaskManager } from '@/components/dashboard/task-manager'
 import { deleteTask } from '@/lib/actions/tasks'
 import type { PrvProject, PrvClient, PrvTask } from '@/lib/types/database'
-import { Trash2 } from 'lucide-react'
+import { Trash2, ExternalLink } from 'lucide-react'
 
 const SERVICE_LABELS = { art: '🖼 Art', animation: '🦴 Animation', vfx: '🎬 VFX' } as const
 
@@ -42,12 +42,28 @@ export default async function ProjectDetailPage({
       </nav>
 
       {/* Heading */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-lg font-black uppercase tracking-wider text-white">{project.name}</h1>
-        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
-          style={{ background: `${statusColor}20`, color: statusColor }}>
-          {project.status}
-        </span>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-black uppercase tracking-wider text-white">{project.name}</h1>
+          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
+            style={{ background: `${statusColor}20`, color: statusColor }}>
+            {project.status}
+          </span>
+        </div>
+        <Link
+          href={`/portal/${project.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            color: '#888',
+          }}
+        >
+          <ExternalLink size={11} />
+          Preview as Client
+        </Link>
       </div>
 
       {/* Tabs */}
