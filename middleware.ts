@@ -34,6 +34,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // The negative-lookahead pattern below does NOT match the index route, so
+    // list '/' explicitly — otherwise visiting the root skips middleware and
+    // renders the empty RootPage (blank screen) instead of redirecting.
+    '/',
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
