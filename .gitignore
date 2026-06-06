@@ -11,7 +11,14 @@
 
 # next.js
 /.next/
+/.next-build/
+/.next-old/
 /out/
+
+# local run logs
+/.devserver.log
+/.prodbuild.log
+/.prodserver.log
 
 # production
 /build
