@@ -2,9 +2,24 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trash2, Eye } from 'lucide-react'
+import { Trash2, Eye, Download } from 'lucide-react'
 import { AssetViewerModal } from '@/components/preview/asset-viewer-modal'
+import { SpinePlayer } from '@/components/preview/spine-player'
 import type { PrvAsset, ServiceType } from '@/lib/types/database'
+
+function stripExt(name: string): string {
+  return name.replace(/\.[^./]+$/, '')
+}
+
+async function downloadAsset(assetId: string, name: string) {
+  const res = await fetch(`/api/assets/${assetId}/download`)
+  if (!res.ok) return
+  const { url } = await res.json()
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  a.click()
+}
 
 interface AssetGridClientProps {
   assets: PrvAsset[]
@@ -56,6 +71,61 @@ export function AssetGridClient({
     await fetch(`/api/assets/${assetId}`, { method: 'DELETE' })
     setDeleting(null)
     router.refresh()
+  }
+
+  // Animation tab: show the playable Spine inline instead of the raw json/png/
+  // atlas files. Group files by base name; each set with a .json is one player.
+  if (serviceType === 'animation' && spineVersion) {
+    const jsonSets = assets.filter(
+      a => (a.file_type === 'json' || a.name.endsWith('.json')) && a.task_id
+    )
+    if (jsonSets.length > 0) {
+      return (
+        <div className="space-y-8">
+          {jsonSets.map(json => {
+            const base = stripExt(json.name)
+            const jsonUrl = `/api/spine/${json.task_id}/${encodeURIComponent(json.name)}`
+            const atlasUrl = `/api/spine/${json.task_id}/${encodeURIComponent(`${base}.atlas`)}`
+            const setFiles = assets.filter(a => stripExt(a.name) === base)
+            return (
+              <div key={json.id} className="space-y-2">
+                <SpinePlayer
+                  skeletonUrl={jsonUrl}
+                  atlasUrl={atlasUrl}
+                  spineVersion={spineVersion}
+                  assetName={json.name}
+                  onDownload={() => downloadAsset(json.id, json.name)}
+                />
+                <details className="text-xs" style={{ color: '#666' }}>
+                  <summary className="cursor-pointer select-none py-1 hover:text-white transition-colors">
+                    Source files ({setFiles.length})
+                  </summary>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {setFiles.map(f => (
+                      <div key={f.id}
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <span className="text-white">{f.name}</span>
+                        <button onClick={() => downloadAsset(f.id, f.name)}
+                          className="text-neutral-400 hover:text-[#FF9500]" title="Download">
+                          <Download size={12} />
+                        </button>
+                        {!readonly && (
+                          <button onClick={(e) => handleDelete(e, f.id)} disabled={deleting === f.id}
+                            className="text-neutral-400 hover:text-red-400" title="Delete">
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
   }
 
   return (
