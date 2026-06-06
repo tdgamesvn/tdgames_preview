@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: TDGAME STUDIO
+          - generic [ref=e8]: Welcome back
+          - generic [ref=e9]: Sign in to access your deliverables
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: Email Address
+            - textbox "Email Address" [ref=e13]:
+              - /placeholder: you@example.com
+          - generic [ref=e14]:
+            - generic [ref=e15]: Password
+            - textbox "Password" [ref=e16]:
+              - /placeholder: ••••••••
+          - button "Sign In →" [ref=e18] [cursor=pointer]
+          - generic [ref=e19]: Credentials provided by your studio contact
+      - generic [ref=e20]: Confidential · Authorized Access Only
+  - alert [ref=e21]

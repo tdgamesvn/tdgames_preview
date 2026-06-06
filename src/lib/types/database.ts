@@ -37,6 +37,11 @@ export interface PrvTask {
   name: string
   sort_order: number
   created_at: string
+  avatar_asset_id: string | null
+  avatar_animation: string | null
+  avatar_scale: number
+  avatar_offset_x: number
+  avatar_offset_y: number
 }
 
 
@@ -77,6 +82,7 @@ export interface Database {
       Prv_profiles: TableDef<PrvProfile, Omit<PrvProfile, 'created_at'>, Partial<PrvProfile>>
       Prv_clients: TableDef<PrvClient, Omit<PrvClient, 'id' | 'created_at'>, Partial<PrvClient>>
       Prv_projects: TableDef<PrvProject, Omit<PrvProject, 'id' | 'created_at'>, Partial<PrvProject>>
+      Prv_tasks: TableDef<PrvTask, Omit<PrvTask, 'id' | 'created_at'>, Partial<PrvTask>>
       Prv_assets: TableDef<PrvAsset, Omit<PrvAsset, 'id' | 'created_at'>, Partial<PrvAsset>>
       Prv_comments: TableDef<PrvComment, Omit<PrvComment, 'id' | 'created_at'>, Partial<PrvComment>>
     }

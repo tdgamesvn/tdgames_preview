@@ -76,10 +76,32 @@ Never edit files under `src/components/ui/` directly.
 - P1 (active): `docs/superpowers/plans/2026-06-05-p1-foundation-auth.md`
 - Spec: `docs/superpowers/specs/2026-06-05-preview-app-design.md`
 
-## Current Status (P1 Progress)
-- [x] Next.js scaffold + deps installed
-- [ ] Supabase clients (`src/lib/supabase/`)
-- [ ] DB migration SQL (`supabase/migrations/`)
-- [ ] Login page + LoginForm component
-- [ ] Middleware route protection
-- [ ] Stub pages (dashboard, portal, share)
+## Current Status
+P1 (Foundation + Auth) ✅ COMPLETE
+P5 (Deploy) ✅ COMPLETE — live tại `preview.tdgamestudio.com`
+P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agent/meta/TASKS.md` for latest
+
+---
+
+## ⚡ Session Memory
+> **Đây là persistent memory qua các session. Claude PHẢI đọc phần này khi bắt đầu. Cập nhật cuối mỗi session.**
+
+### Trạng thái hiện tại
+<!-- Claude: cập nhật sau mỗi session với format bên dưới -->
+- **Phase đang làm:** (điền vào)
+- **Branch hiện tại:** (điền vào)
+- **Vừa hoàn thành:** (điền vào)
+- **Tiếp theo cần làm:** (điền vào)
+
+### Context quan trọng
+<!-- Ghi lại những gì cần nhớ giữa các session: config đặc biệt, bug đã gặp, quyết định đột xuất -->
+- App đã deploy: `preview.tdgamestudio.com` (VPS vps6core, Docker + nginx)
+- DB: Supabase project `zjunfcyymesfpeikspzf`
+- Storage: Cloudflare R2 bucket `tdgames-preview-assets`
+
+### Hướng dẫn cập nhật Session Memory
+Khi user bảo "lưu context" hoặc kết thúc session dài, chạy:
+```
+# Cập nhật phần "Trạng thái hiện tại" trong CLAUDE.md với progress thực tế
+# Thêm vào "Context quan trọng" bất kỳ điều gì cần nhớ qua session mới
+```

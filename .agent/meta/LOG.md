@@ -1,5 +1,13 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-06 (UX: Batch Characters + Dark Cards + Internal Preview)
+- Batch character add: TaskManager dùng textarea comma/newline separated → createTasksBatch single INSERT
+- AssetGridClient: restyle dark theme, orange hover border, "Preview" eye icon hint on hover
+- AssetGridClient: delete dùng fetch+router.refresh (thay form method=DELETE không hoạt động)
+- Portal /portal/[pid]: internal role bypass client_id ownership check
+- Dashboard project page: "Preview as Client" button → mở portal tab mới
+- 38/38 tests pass, build clean, deployed ✅
+
 ## 2026-06-06 (CORS Fix + Deploy)
 - Fix: R2 CORS "Failed to fetch" khi upload trực tiếp từ browser
   - Chuyển sang proxy upload qua server (Option B)

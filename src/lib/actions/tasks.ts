@@ -38,6 +38,33 @@ export async function createTasksBatch(input: {
   return { data: data as PrvTask[], error: null }
 }
 
+export async function updateTaskAvatar(params: {
+  task_id: string
+  project_id: string
+  client_id: string
+  avatar_asset_id: string | null
+  avatar_animation: string | null
+  avatar_scale: number
+  avatar_offset_x: number
+  avatar_offset_y: number
+}): Promise<{ error?: string }> {
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase
+    .from('Prv_tasks')
+    .update({
+      avatar_asset_id: params.avatar_asset_id,
+      avatar_animation: params.avatar_animation,
+      avatar_scale: params.avatar_scale,
+      avatar_offset_x: params.avatar_offset_x,
+      avatar_offset_y: params.avatar_offset_y,
+    })
+    .eq('id', params.task_id)
+    .eq('project_id', params.project_id)
+  if (error) return { error: error.message }
+  revalidatePath(`/dashboard/clients/${params.client_id}/projects/${params.project_id}`)
+  return {}
+}
+
 export async function deleteTask(input: {
   task_id: string
   project_id: string

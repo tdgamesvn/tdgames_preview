@@ -12,6 +12,7 @@ interface AssetGridClientProps {
   spineVersion?: string | null
   projectId: string
   readonly?: boolean
+  presignedUrls?: Record<string, string>  // art thumbnails, pre-generated server-side
 }
 
 const TYPE_ICON: Record<ServiceType, string> = {
@@ -26,6 +27,7 @@ export function AssetGridClient({
   spineVersion,
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
   readonly = false,
+  presignedUrls = {},
 }: AssetGridClientProps) {
   const router = useRouter()
   const [viewingAsset, setViewingAsset] = useState<PrvAsset | null>(null)
@@ -51,72 +53,85 @@ export function AssetGridClient({
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {assets.map((asset) => (
-          <div
-            key={asset.id}
-            onClick={() => setViewingAsset(asset)}
-            title="Click to preview"
-            className="group relative cursor-pointer rounded-xl overflow-hidden transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,149,0,0.35)'
-              ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,149,0,0.04)'
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,255,255,0.08)'
-              ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'
-            }}
-          >
-            {/* Thumbnail area */}
+        {assets.map((asset) => {
+          const thumbUrl = presignedUrls[asset.id] ?? ''
+          return (
             <div
-              className="aspect-square flex flex-col items-center justify-center gap-1.5 relative"
-              style={{ background: 'rgba(255,255,255,0.02)' }}
+              key={asset.id}
+              onClick={() => setViewingAsset(asset)}
+              title="Click to preview"
+              className="group relative cursor-pointer rounded-xl overflow-hidden transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+              onMouseEnter={e => {
+                ;(e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,149,0,0.35)'
+                ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,149,0,0.04)'
+              }}
+              onMouseLeave={e => {
+                ;(e.currentTarget as HTMLElement).style.border = '1px solid rgba(255,255,255,0.08)'
+                ;(e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)'
+              }}
             >
-              <span className="text-2xl">{TYPE_ICON[serviceType]}</span>
-              {/* Preview hint */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ background: 'rgba(0,0,0,0.45)' }}>
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold"
-                  style={{ background: 'rgba(255,149,0,0.9)', color: '#080808' }}>
-                  <Eye size={10} />
-                  Preview
+              {/* Thumbnail */}
+              <div className="aspect-square relative overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.02)' }}>
+                {thumbUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={thumbUrl} alt={asset.name}
+                    className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-2xl">{TYPE_ICON[serviceType]}</span>
+                  </div>
+                )}
+                {/* Hover overlay */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: 'rgba(0,0,0,0.5)' }}>
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold"
+                    style={{ background: 'rgba(255,149,0,0.9)', color: '#080808' }}>
+                    <Eye size={10} />
+                    Preview
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* File info */}
-            <div className="px-2.5 py-2">
-              <p className="text-xs font-medium text-white truncate" title={asset.name}>
-                {asset.name}
-              </p>
-              <p className="text-[10px] uppercase tracking-wider mt-0.5" style={{ color: '#555' }}>
-                {asset.file_type}
-              </p>
-            </div>
+              {/* File info */}
+              <div className="px-2.5 py-2">
+                <p className="text-xs font-medium text-white truncate" title={asset.name}>
+                  {asset.name}
+                </p>
+                <p className="text-[10px] uppercase tracking-wider mt-0.5" style={{ color: '#555' }}>
+                  {asset.file_type}
+                </p>
+              </div>
 
-            {/* Delete button */}
-            {!readonly && (
-              <button
-                onClick={(e) => handleDelete(e, asset.id)}
-                disabled={deleting === asset.id}
-                className="absolute top-1.5 right-1.5 p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444' }}
-                title="Delete asset"
-              >
-                <Trash2 size={11} />
-              </button>
-            )}
-          </div>
-        ))}
+              {/* Delete */}
+              {!readonly && (
+                <button
+                  onClick={(e) => handleDelete(e, asset.id)}
+                  disabled={deleting === asset.id}
+                  className="absolute top-1.5 right-1.5 p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444' }}
+                  title="Delete asset"
+                >
+                  <Trash2 size={11} />
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {viewingAsset && (
         <AssetViewerModal
-          asset={viewingAsset}
-          allArtAssets={serviceType === 'art' ? assets : []}
+          asset={{ ...viewingAsset, presignedUrl: presignedUrls[viewingAsset.id] }}
+          allArtAssets={
+            serviceType === 'art'
+              ? assets.map(a => ({ ...a, presignedUrl: presignedUrls[a.id] }))
+              : []
+          }
           spineVersion={spineVersion}
           onClose={() => setViewingAsset(null)}
         />
