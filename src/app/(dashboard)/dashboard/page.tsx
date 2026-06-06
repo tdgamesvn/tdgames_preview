@@ -2,16 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import type { PrvAsset } from '@/lib/types/database'
 
-// Service type helpers
 const serviceIcon = (t: string) =>
-  t === 'art' ? '🖼️' : t === 'animation' ? '🦴' : '🎬'
+  t === 'art' ? '🖼' : t === 'animation' ? '🦴' : '🎬'
 
 const serviceColor = (t: string) =>
-  t === 'art'
-    ? '#FF9500'
-    : t === 'animation'
-      ? '#818cf8'
-      : '#4ade80'
+  t === 'art'        ? '#FF9500'
+  : t === 'animation' ? '#818cf8'
+  :                     '#34d399'
 
 export default async function DashboardPage() {
   const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -22,9 +19,9 @@ export default async function DashboardPage() {
     { count: assetCount },
     { data: recentAssets },
   ] = await Promise.all([
-    supabase.from('Prv_clients').select('*', { count: 'exact', head: true }),
+    supabase.from('Prv_clients').select('*',  { count: 'exact', head: true }),
     supabase.from('Prv_projects').select('*', { count: 'exact', head: true }),
-    supabase.from('Prv_assets').select('*', { count: 'exact', head: true }),
+    supabase.from('Prv_assets').select('*',   { count: 'exact', head: true }),
     supabase
       .from('Prv_assets')
       .select('id, name, file_type, service_type, created_at, project_id, Prv_projects(name, client_id, Prv_clients(name))')
@@ -33,109 +30,153 @@ export default async function DashboardPage() {
   ])
 
   const stats = [
-    { label: 'Clients',  value: clientCount  ?? 0, href: '/dashboard/clients', desc: 'Active studio clients' },
-    { label: 'Projects', value: projectCount ?? 0, href: '/dashboard/clients', desc: 'Total projects'       },
-    { label: 'Assets',   value: assetCount   ?? 0, href: '#',                  desc: 'Uploaded files'       },
+    { label: 'Clients',  value: clientCount  ?? 0, href: '/dashboard/clients', suffix: 'studios' },
+    { label: 'Projects', value: projectCount ?? 0, href: '/dashboard/clients', suffix: 'active'  },
+    { label: 'Assets',   value: assetCount   ?? 0, href: '#',                  suffix: 'files'   },
   ]
 
   return (
-    <div className="p-8 space-y-6 font-montserrat">
-
-      {/* ── Page heading ─────────────────────────────────────────── */}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-1">
-          Internal Dashboard
-        </p>
-        <h1 className="text-lg font-black uppercase tracking-wider text-white">
-          Overview
-        </h1>
-      </div>
-
-      {/* ── KPI Stats ────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-6">
-        {stats.map(({ label, value, href, desc }) => (
-          <Link
-            key={label}
-            href={href}
-            className="rounded-2xl border border-white/8 p-5 space-y-1 transition-all hover:border-white/20 block"
-            style={{ background: 'rgba(255,255,255,0.02)' }}
-          >
-            <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium">
-              {label}
-            </p>
-            <p className="text-2xl font-black text-white">
-              {String(value).padStart(2, '0')}
-            </p>
-            <p className="text-xs text-neutral-medium">{desc}</p>
-          </Link>
-        ))}
-      </div>
-
-      {/* ── Recent Uploads ───────────────────────────────────────── */}
+    <div className="min-h-screen page-enter">
+      {/* ── Hero header ─────────────────────────────────── */}
       <div
-        className="rounded-2xl border overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.08)' }}
+        className="relative px-8 pt-10 pb-8 overflow-hidden"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
-        {/* Panel header */}
+        {/* Ambient glow */}
         <div
-          className="px-5 py-4 flex items-center justify-between"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          <p className="text-[10px] font-black uppercase tracking-wider text-white">
-            Recent Uploads
+          className="absolute top-0 right-0 w-96 h-48 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse at 80% 0%, rgba(255,149,0,0.07) 0%, transparent 65%)',
+          }}
+        />
+        <div className="relative">
+          <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: '#FF9500', opacity: 0.7 }}>
+            Internal Dashboard
           </p>
-          <p className="text-[9px] font-black uppercase tracking-wider text-neutral-medium">
-            Last {recentAssets?.length ?? 0} files
+          <h1 className="text-2xl font-bold text-white tracking-tight">Overview</h1>
+          <p className="text-sm mt-1" style={{ color: '#666' }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
+      </div>
 
-        {/* Empty state */}
-        {!recentAssets?.length ? (
-          <div className="text-center py-16">
-            <p className="text-3xl mb-3">📂</p>
-            <p className="text-sm text-neutral-medium">No assets uploaded yet</p>
-            <p className="text-xs mt-1 text-neutral-dark">
-              Upload assets from a project page to see them here
+      <div className="px-8 py-7 space-y-7">
+
+        {/* ── KPI stats ─────────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-4">
+          {stats.map(({ label, value, href, suffix }) => (
+            <Link
+              key={label}
+              href={href}
+              className="group rounded-2xl p-5 transition-all"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              }}
+              onMouseEnter={e => {
+                const el = e.currentTarget as HTMLElement
+                el.style.borderColor = 'rgba(255,255,255,0.12)'
+                el.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)'
+              }}
+              onMouseLeave={e => {
+                const el = e.currentTarget as HTMLElement
+                el.style.borderColor = 'rgba(255,255,255,0.07)'
+                el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
+              }}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: '#555' }}>
+                {label}
+              </p>
+              <p className="text-4xl font-bold text-white tabular-nums leading-none mb-1">
+                {String(value).padStart(2, '0')}
+              </p>
+              <p className="text-xs font-medium" style={{ color: '#444' }}>{suffix}</p>
+            </Link>
+          ))}
+        </div>
+
+        {/* ── Recent uploads ────────────────────────────── */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.07)',
+          }}
+        >
+          {/* Panel header */}
+          <div
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-white" style={{ letterSpacing: '0.1em' }}>
+              Recent Uploads
             </p>
+            <span className="text-[10px] font-medium" style={{ color: '#444' }}>
+              {recentAssets?.length ?? 0} files
+            </span>
           </div>
-        ) : (
-          recentAssets.map((asset) => {
-            const color = serviceColor(asset.service_type)
-            return (
-              <div
-                key={asset.id}
-                className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.025] transition-all"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}
-              >
-                {/* Left: icon + name + breadcrumb */}
-                <div className="flex items-center gap-3">
-                  <span className="text-base">{serviceIcon(asset.service_type)}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{asset.name}</p>
-                    <p className="text-xs text-neutral-medium mt-0.5">
-                      {asset.Prv_projects?.Prv_clients?.name}
-                      <span className="mx-1.5 text-neutral-dark">›</span>
-                      {asset.Prv_projects?.name}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Right: service badge + date */}
-                <div className="flex flex-col items-end gap-1">
-                  <span
-                    className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
-                    style={{ background: `${color}20`, color }}
+          {/* Empty state */}
+          {!recentAssets?.length ? (
+            <div className="text-center py-16">
+              <p className="text-3xl mb-3">📂</p>
+              <p className="text-sm font-medium" style={{ color: '#555' }}>No assets uploaded yet</p>
+              <p className="text-xs mt-1" style={{ color: '#333' }}>
+                Upload assets from a project page
+              </p>
+            </div>
+          ) : (
+            <div>
+              {recentAssets.map((asset, i) => {
+                const color = serviceColor(asset.service_type)
+                const isLast = i === (recentAssets?.length ?? 0) - 1
+                return (
+                  <div
+                    key={asset.id}
+                    className="flex items-center justify-between px-5 py-3.5 transition-colors"
+                    style={{
+                      borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '' }}
                   >
-                    {asset.service_type}
-                  </span>
-                  <span className="text-[10px] font-mono tracking-wider text-neutral-medium">
-                    {new Date(asset.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            )
-          })
-        )}
+                    {/* Left */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                        style={{ background: `${color}14` }}
+                      >
+                        {serviceIcon(asset.service_type)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{asset.name}</p>
+                        <p className="text-xs truncate mt-0.5" style={{ color: '#555' }}>
+                          {asset.Prv_projects?.Prv_clients?.name}
+                          <span className="mx-1.5" style={{ color: '#333' }}>›</span>
+                          {asset.Prv_projects?.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right */}
+                    <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                      <span
+                        className="text-[9px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md"
+                        style={{ background: `${color}14`, color }}
+                      >
+                        {asset.service_type}
+                      </span>
+                      <span className="text-[10px] tabular-nums" style={{ color: '#444' }}>
+                        {new Date(asset.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

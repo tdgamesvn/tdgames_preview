@@ -2,37 +2,171 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Design Tokens ──────────────────────────────────────── */
 :root {
-  --background: #0F0F0F;
-  --foreground: #F2F2F2;
+  --background:          #080808;
+  --foreground:          #F0F0F0;
 
-  /* shadcn/base-ui component tokens */
-  --popover: #1A1A1A;
-  --popover-foreground: #F2F2F2;
-  --muted: #1A1A1A;
-  --muted-foreground: #9D9C9D;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: #1A1A1A;
-  --ring: #FF9500;
-  --card: #1A1A1A;
-  --card-foreground: #F2F2F2;
-  --primary: #FF9500;
-  --primary-foreground: #0F0F0F;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #F2F2F2;
-  --accent: #1A1A1A;
-  --accent-foreground: #F2F2F2;
-  --destructive: #F44336;
-  --destructive-foreground: #F2F2F2;
+  /* shadcn / base-ui component tokens */
+  --popover:             #161616;
+  --popover-foreground:  #F0F0F0;
+  --card:                #111111;
+  --card-foreground:     #F0F0F0;
+  --muted:               #181818;
+  --muted-foreground:    #888888;
+  --border:              rgba(255, 255, 255, 0.07);
+  --input:               #161616;
+  --ring:                #FF9500;
+  --primary:             #FF9500;
+  --primary-foreground:  #080808;
+  --secondary:           #181818;
+  --secondary-foreground:#F0F0F0;
+  --accent:              #1a1a1a;
+  --accent-foreground:   #F0F0F0;
+  --destructive:         #EF4444;
+  --destructive-foreground: #fff;
+
+  --radius: 12px;
+}
+
+/* ─── Base ───────────────────────────────────────────────── */
+* {
+  border-color: rgba(255, 255, 255, 0.07);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
+  /* Subtle warm radial glow at top for atmosphere */
+  background-image: radial-gradient(
+    ellipse 140% 60% at 60% -10%,
+    rgba(255, 149, 0, 0.04) 0%,
+    transparent 55%
+  );
+  background-attachment: fixed;
 }
 
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* ─── Focus ring ─────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(255, 149, 0, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Typography helpers ─────────────────────────────────── */
+.label-xs {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+/* ─── Card primitives ────────────────────────────────────── */
+.card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+}
+.card-orange {
+  background: rgba(255, 149, 0, 0.05);
+  border: 1px solid rgba(255, 149, 0, 0.14);
+  border-radius: 14px;
+}
+
+/* ─── Button overrides (shadcn/base-ui data-slot) ─────────── */
+[data-slot="button"][class*="bg-primary"],
+.btn-primary {
+  background: #FF9500 !important;
+  color: #080808 !important;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  box-shadow: 0 1px 3px rgba(255,149,0,0.2);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+[data-slot="button"][class*="bg-primary"]:hover,
+.btn-primary:hover {
+  background: #e88600 !important;
+  box-shadow: 0 0 16px rgba(255,149,0,0.35);
+}
+
+/* ─── Tab primitives (base-ui) ───────────────────────────── */
+[data-slot="tabs-list"] {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 12px !important;
+  padding: 3px !important;
+}
+[data-slot="tabs-trigger"] {
+  border-radius: 9px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  color: #777 !important;
+  transition: all 0.15s !important;
+}
+[data-slot="tabs-trigger"][data-selected],
+[data-slot="tabs-trigger"][aria-selected="true"] {
+  background: rgba(255,255,255,0.07) !important;
+  color: #F0F0F0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+}
+
+/* ─── Input overrides ────────────────────────────────────── */
+[data-slot="input"],
+input[class*="border"] {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #F0F0F0 !important;
+  border-radius: 10px !important;
+  transition: border-color 0.15s, background 0.15s;
+}
+[data-slot="input"]:focus,
+input[class*="border"]:focus {
+  border-color: rgba(255,149,0,0.5) !important;
+  background: rgba(255,149,0,0.04) !important;
+}
+
+/* ─── Dialog overrides ───────────────────────────────────── */
+[data-slot="dialog-content"] {
+  background: #141414 !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06) !important;
+}
+[data-slot="dialog-title"] {
+  color: #F0F0F0 !important;
+  font-weight: 700;
+}
+
+/* ─── Label overrides ────────────────────────────────────── */
+[data-slot="label"],
+label {
+  color: #888 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ─── Utility ────────────────────────────────────────────── */
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
+
+  .border-subtle { border-color: rgba(255,255,255,0.07); }
+  .border-medium { border-color: rgba(255,255,255,0.12); }
+
+  /* Page fade-in wrapper */
+  .page-enter { animation: fade-in 0.35s ease both; }
 }

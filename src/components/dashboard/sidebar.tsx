@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, LogOut, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, ChevronRight, Zap } from 'lucide-react'
 import type { PrvClient } from '@/lib/types/database'
 
 interface SidebarProps {
@@ -17,122 +17,165 @@ export function Sidebar({ clients }: SidebarProps) {
 
   return (
     <aside
-      className="w-60 min-h-screen flex flex-col font-montserrat"
+      className="w-56 min-h-screen flex flex-col flex-shrink-0"
       style={{
-        background: '#0F0F0F',
-        borderRight: '1px solid rgba(255,255,255,0.05)',
+        background: '#0A0A0A',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      {/* Logo */}
+      {/* ── Brand ─────────────────────────────────────────── */}
       <div
-        className="px-5 py-5"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+        className="px-5 py-5 relative overflow-hidden"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
-        <div className="text-sm font-black uppercase tracking-widest text-white">
-          TDGAME
-        </div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span
-            className="w-1.5 h-1.5 rounded-full inline-block"
-            style={{ background: '#4CAF50', boxShadow: '0 0 4px #4CAF50' }}
-          />
-          <span className="text-[9px] font-black uppercase tracking-widest text-neutral-medium">
-            Preview Portal
-          </span>
+        {/* Subtle orange glow behind logo */}
+        <div
+          className="absolute -top-6 -right-6 w-24 h-24 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(255,149,0,0.12) 0%, transparent 70%)' }}
+        />
+        <div className="flex items-center gap-2.5 relative">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #FF9500, #FF6B00)', boxShadow: '0 2px 8px rgba(255,149,0,0.35)' }}
+          >
+            <Zap size={13} className="text-white fill-white" />
+          </div>
+          <div>
+            <div className="text-xs font-bold tracking-wide text-white">TDGame</div>
+            <div className="text-[9px] font-medium text-neutral-medium" style={{ color: '#666' }}>
+              Preview Portal
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {/* Overview */}
-        <Link
-          href="/dashboard"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-            isActive('/dashboard', true)
-              ? 'text-primary'
-              : 'text-neutral-medium hover:text-neutral-light hover:bg-white/5'
-          }`}
-          style={isActive('/dashboard', true) ? { background: 'rgba(255,149,0,0.08)', color: '#FF9500' } : {}}
-        >
-          <LayoutDashboard size={14} />
-          Overview
-        </Link>
+      {/* ── Nav ───────────────────────────────────────────── */}
+      <nav className="flex-1 px-2 py-3 space-y-0.5">
 
-        {/* Clients section */}
-        <div className="pt-4 pb-1">
-          <p className="px-3 text-[9px] font-black uppercase tracking-widest text-neutral-dark mb-1">
+        <NavItem
+          href="/dashboard"
+          icon={<LayoutDashboard size={14} />}
+          label="Overview"
+          active={isActive('/dashboard', true)}
+        />
+
+        {/* Section label */}
+        <div className="px-3 pt-4 pb-1">
+          <span className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: '#444' }}>
             Clients
-          </p>
+          </span>
         </div>
 
-        <Link
+        <NavItem
           href="/dashboard/clients"
-          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-            isActive('/dashboard/clients', true)
-              ? 'text-primary'
-              : 'text-neutral-medium hover:text-neutral-light hover:bg-white/5'
-          }`}
-          style={isActive('/dashboard/clients', true) ? { background: 'rgba(255,149,0,0.08)', color: '#FF9500' } : {}}
-        >
-          <Users size={14} />
-          All Clients
-        </Link>
+          icon={<Users size={14} />}
+          label="All Clients"
+          active={isActive('/dashboard/clients', true)}
+        />
 
-        {clients.map((client) => (
-          <Link
-            key={client.id}
-            href={`/dashboard/clients/${client.id}`}
-            className={`flex items-center gap-2 px-3 py-1.5 pl-8 rounded-xl text-[11px] font-semibold transition-all ${
-              isActive(`/dashboard/clients/${client.id}`)
-                ? 'text-white'
-                : 'text-neutral-medium hover:text-neutral-light hover:bg-white/5'
-            }`}
-            style={isActive(`/dashboard/clients/${client.id}`) ? { background: 'rgba(255,255,255,0.04)', color: '#FF9500' } : {}}
-          >
-            <ChevronRight size={10} className="opacity-40 flex-shrink-0" />
-            <span className="truncate">{client.name}</span>
-          </Link>
-        ))}
+        {/* Client sub-items */}
+        {clients.map((client) => {
+          const active = isActive(`/dashboard/clients/${client.id}`)
+          return (
+            <Link
+              key={client.id}
+              href={`/dashboard/clients/${client.id}`}
+              className="flex items-center gap-2 px-3 py-1.5 pl-8 rounded-lg text-[11px] font-medium transition-colors group"
+              style={{
+                color: active ? '#F0F0F0' : '#555',
+              }}
+            >
+              <ChevronRight
+                size={9}
+                className="transition-transform group-hover:translate-x-0.5"
+                style={{ color: active ? '#FF9500' : '#444' }}
+              />
+              <span className="truncate group-hover:text-neutral-300 transition-colors">
+                {client.name}
+              </span>
+            </Link>
+          )
+        })}
 
         {clients.length === 0 && (
-          <div className="px-3 py-1.5 pl-8 text-[10px] text-neutral-dark italic">
+          <div className="px-3 py-1.5 pl-8 text-[10px]" style={{ color: '#333' }}>
             No clients yet
           </div>
         )}
       </nav>
 
-      {/* Footer / Logout */}
+      {/* ── Footer ────────────────────────────────────────── */}
       <div
-        className="px-3 py-4"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+        className="px-2 py-3"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
       >
-        {/* Role badge */}
+        {/* User pill */}
         <div
           className="flex items-center gap-2.5 px-3 py-2 rounded-xl mb-1"
-          style={{ background: 'rgba(255,149,0,0.03)' }}
+          style={{ background: 'rgba(255,149,0,0.04)', border: '1px solid rgba(255,149,0,0.1)' }}
         >
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] font-black"
-            style={{ background: 'rgba(255,149,0,0.12)', color: '#FF9500' }}
+            className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[9px] font-black"
+            style={{ background: 'rgba(255,149,0,0.15)', color: '#FF9500' }}
           >
             TG
           </div>
-          <div>
-            <div className="text-xs font-black text-white uppercase tracking-wider">Internal</div>
-            <div className="text-[9px] font-bold text-neutral-dark uppercase tracking-wider">TDGame Studio</div>
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold text-white truncate">Internal</div>
+            <div className="text-[9px] truncate" style={{ color: '#555' }}>TDGame Studio</div>
           </div>
         </div>
 
         <form action="/api/auth/logout" method="POST">
           <button
             type="submit"
-            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-neutral-medium hover:text-status-error hover:bg-white/5 transition-all"
+            className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+            style={{ color: '#555' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#EF4444'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.06)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#555'; (e.currentTarget as HTMLButtonElement).style.background = '' }}
           >
-            <LogOut size={13} />
+            <LogOut size={12} />
             Sign Out
           </button>
         </form>
       </div>
     </aside>
+  )
+}
+
+/* ── Nav Item helper ──────────────────────────────────────── */
+function NavItem({
+  href, icon, label, active,
+}: {
+  href: string
+  icon: React.ReactNode
+  label: string
+  active: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium transition-all relative group"
+      style={{
+        color:      active ? '#F0F0F0' : '#666',
+        background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+        boxShadow:  active ? 'inset 0 1px 0 rgba(255,255,255,0.05)' : 'none',
+      }}
+    >
+      {/* Left accent bar */}
+      {active && (
+        <span
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full"
+          style={{ background: '#FF9500' }}
+        />
+      )}
+      <span
+        className="transition-colors"
+        style={{ color: active ? '#FF9500' : '#555' }}
+      >
+        {icon}
+      </span>
+      <span className="group-hover:text-neutral-200 transition-colors">{label}</span>
+    </Link>
   )
 }

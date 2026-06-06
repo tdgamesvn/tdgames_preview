@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 
-const montserrat = Montserrat({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-montserrat',
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
 })
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} font-montserrat`}>{children}</body>
+      <body className={`${jakarta.variable} font-jakarta antialiased`}>{children}</body>
     </html>
   )
 }
