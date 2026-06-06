@@ -32,7 +32,7 @@ export default async function ProjectDetailPage({
   const statusColor = project.status === 'active' ? '#4CAF50' : '#9D9C9D'
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider">
         <Link

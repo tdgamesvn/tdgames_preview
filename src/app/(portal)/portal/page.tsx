@@ -36,7 +36,7 @@ export default async function PortalPage() {
     .order('created_at', { ascending: false })) as { data: PrvProject[] | null }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Heading */}
       <div>
         <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-1">

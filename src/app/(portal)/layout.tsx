@@ -23,7 +23,7 @@ export default async function PortalLayout({
     <div className="min-h-screen bg-bg">
       {/* Header */}
       <header
-        className="px-6 py-3 flex items-center justify-between"
+        className="px-4 sm:px-6 py-3 flex items-center justify-between"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0F0F0F' }}
       >
         <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export default async function PortalLayout({
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-6 py-8">{children}</main>
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5 sm:py-8">{children}</main>
     </div>
   )
 }

@@ -44,7 +44,7 @@ export default async function SharePage({ params }: Props) {
     <div className="min-h-screen bg-bg">
       {/* Minimal branded header */}
       <header
-        className="px-6 py-3 flex items-center"
+        className="px-4 sm:px-6 py-3 flex items-center"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: '#0F0F0F' }}
       >
         <span className="text-xs font-black uppercase tracking-widest text-white">TDGAME</span>
@@ -56,7 +56,7 @@ export default async function SharePage({ params }: Props) {
         </span>
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-4 sm:space-y-6">
         {/* Heading + shared badge */}
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-black uppercase tracking-wider text-white">

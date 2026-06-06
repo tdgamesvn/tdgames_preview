@@ -45,7 +45,7 @@ export default async function PortalProjectPage({
   const statusColor = project.status === 'active' ? '#4CAF50' : '#9D9C9D'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Heading + status */}
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-black uppercase tracking-wider text-white">

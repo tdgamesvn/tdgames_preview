@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen page-enter">
       {/* ── Hero header ─────────────────────────────────── */}
       <div
-        className="relative px-8 pt-10 pb-8 overflow-hidden"
+        className="relative px-4 sm:px-6 md:px-8 pt-7 sm:pt-10 pb-6 sm:pb-8 overflow-hidden"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
         {/* Ambient glow */}
@@ -60,10 +60,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="px-8 py-7 space-y-7">
+      <div className="px-4 sm:px-6 md:px-8 py-5 sm:py-7 space-y-5 sm:space-y-7">
 
         {/* ── KPI stats ─────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           {stats.map(({ label, value, href, suffix }) => (
             <Link
               key={label}
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
               <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: '#555' }}>
                 {label}
               </p>
-              <p className="text-4xl font-bold text-white tabular-nums leading-none mb-1">
+              <p className="text-3xl sm:text-4xl font-bold text-white tabular-nums leading-none mb-1">
                 {String(value).padStart(2, '0')}
               </p>
               <p className="text-xs font-medium" style={{ color: '#444' }}>{suffix}</p>
