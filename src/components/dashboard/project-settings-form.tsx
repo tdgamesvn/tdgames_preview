@@ -21,6 +21,8 @@ interface ProjectSettingsFormProps {
 
 export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const router = useRouter()
+  const [name,         setName]         = useState(project.name)
+  const [description,  setDescription]  = useState(project.description ?? '')
   const [spineVersion, setSpineVersion] = useState(project.spine_version ?? '')
   const [shareEnabled, setShareEnabled] = useState(project.share_enabled)
   const [status,       setStatus]       = useState<'active' | 'archived'>(project.status)
@@ -33,6 +35,8 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
     setSaved(false)
     setErrorMsg(null)
     const result = await updateProject(project.id, {
+      name: name.trim() || project.name,
+      description: description.trim() || null,
       spine_version: spineVersion || null,
       share_enabled: shareEnabled,
       status,
@@ -46,6 +50,35 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
 
   return (
     <div className="space-y-6 max-w-sm">
+
+      {/* ── Name ──────────────────────────────────────── */}
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#666' }}>
+          Project Name
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+        />
+      </div>
+
+      {/* ── Description ───────────────────────────────── */}
+      <div className="space-y-1.5">
+        <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#666' }}>
+          Description
+        </label>
+        <textarea
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          rows={2}
+          placeholder="Optional notes for the client…"
+          className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none resize-none"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+        />
+      </div>
 
       {/* ── Spine version ─────────────────────────────── */}
       <div className="space-y-1.5">

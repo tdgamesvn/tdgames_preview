@@ -7,6 +7,7 @@ import { Comments } from '@/components/preview/comments'
 import { TaskManager } from '@/components/dashboard/task-manager'
 import { CharacterCardGrid } from '@/components/dashboard/character-card-grid'
 import { deleteTask } from '@/lib/actions/tasks'
+import { RenameTaskButton } from '@/components/dashboard/rename-task-button'
 import type { PrvProject, PrvClient, PrvTask } from '@/lib/types/database'
 import { Trash2, ExternalLink } from 'lucide-react'
 
@@ -109,14 +110,13 @@ export default async function ProjectDetailPage({
                   readonly={false}
                 />
 
-                {/* Delete row below cards */}
-                <div className="flex flex-wrap gap-3">
+                {/* Rename + Delete row below cards */}
+                <div className="flex flex-wrap gap-3 items-start">
                   {taskList.map(task => (
-                    <DeleteTaskButton
-                      key={task.id}
-                      task={task}
-                      clientId={params.id}
-                    />
+                    <div key={task.id} className="flex items-center gap-1">
+                      <RenameTaskButton task={task} clientId={params.id} />
+                      <DeleteTaskButton task={task} clientId={params.id} />
+                    </div>
                   ))}
                 </div>
               </div>

@@ -38,6 +38,26 @@ export async function createTasksBatch(input: {
   return { data: data as PrvTask[], error: null }
 }
 
+export async function updateTask(input: {
+  task_id: string
+  project_id: string
+  client_id: string
+  name: string
+}): Promise<ActionResult<PrvTask>> {
+  const name = input.name.trim()
+  if (!name) return { data: null, error: 'Name cannot be empty' }
+  const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
+  const { data, error } = await supabase
+    .from('Prv_tasks')
+    .update({ name })
+    .eq('id', input.task_id)
+    .select()
+    .single()
+  if (error) return { data: null, error: error.message }
+  revalidatePath(`/dashboard/clients/${input.client_id}/projects/${input.project_id}`)
+  return { data: data as PrvTask, error: null }
+}
+
 export async function updateTaskAvatar(params: {
   task_id: string
   project_id: string
