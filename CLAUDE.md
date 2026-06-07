@@ -88,10 +88,10 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 
 ### Trạng thái hiện tại
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
-- **Phase đang làm:** P6 ✅ COMPLETE — tất cả phases P1–P6 đã xong
+- **Phase đang làm:** Bugfix + incremental features (tất cả P1–P6 đã xong)
 - **Branch hiện tại:** `main`
-- **Vừa hoàn thành:** P6 Portal Cinematic Redesign — dark layout, cinematic project cards, scroll zones A–E cho character page, SpineAvatarPreview forwardRef, pill buttons gallery. 46/46 tests pass. Commit `a885037`, pushed → auto-deploy.
-- **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh. Các feature gần đây: rename Client/Project/Character, auto-resize ảnh upload, VFX inline autoplay, Art grid full-width.
+- **Vừa hoàn thành:** (1) Fix dropdown trắng toàn app — tailwind.config.ts thiếu color mappings (bg-popover etc.). (2) avatar-config-panel: native `<select>` → shadcn `<Select>`. (3) Asset Replace feature: khi upload file trùng tên → inline amber confirm chip "Replace / Add new"; API replace mode update DB + delete old R2 object. 49/49 tests. Commit `1509d9e`, pushed → auto-deploy.
+- **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
 
 ### Context quan trọng
 <!-- Ghi lại những gì cần nhớ giữa các session: config đặc biệt, bug đã gặp, quyết định đột xuất -->
