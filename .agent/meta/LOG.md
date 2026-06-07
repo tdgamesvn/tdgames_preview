@@ -1,5 +1,15 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Bugfixes + Portal UX improvements post-P6)
+- **Fix crash portal layout**: `onMouseEnter`/`onMouseLeave` trong server component → RSC serialize error → global-error.tsx. Fix: Tailwind `hover:text-red-500`. (commit `43f526b`)
+- **Fix middleware**: internal users bị block khỏi `/portal/*` → "Preview as Client" không hoạt động. Fix: allow both roles. (commit `fdd3299`)
+- **Fix RosterClient**: render-props với async server component → crash `/portal/[pid]`. Fix: `PortalCharacterGrid` client component với pre-fetched card data. (commit `3082913`)
+- **Fix Spine autoFit transform**: CSS `translate(offsetY%)` đẩy canvas 2000px ra ngoài viewport → IntersectionObserver không fire → Spine không init. Fix: bỏ CSS transform khỏi autoFit mode. (commit `378b4e0`)
+- **Art section redesign**: grid thông minh (1 ảnh → full width; 2+ → 2 cols), `objectFit:contain`, max-height 1080px.
+- **VFX inline auto-play**: `VfxInlineGrid` với IntersectionObserver — video play khi scroll đến, pause khi ra ngoài.
+- **Portal layout wider**: `max-w-[1400px]` → `max-w-[1600px]` để giảm khoảng trống 2 bên trên màn rộng.
+- 46/46 tests pass, build clean.
+
 ## 2026-06-07 (P6 — Portal Cinematic Redesign)
 - Triển khai hoàn tất P6: Portal Redesign — Character-First Showcase (commit `a885037`)
 - Portal layout: dark `#080808` + grain texture overlay (fixed, z-index 0)
