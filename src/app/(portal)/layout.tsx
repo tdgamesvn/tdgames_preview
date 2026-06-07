@@ -57,10 +57,8 @@ export default async function PortalLayout({
           <form action="/api/auth/logout" method="POST">
             <button
               type="submit"
-              className="text-[10px] font-black uppercase tracking-wider transition-colors"
+              className="text-[10px] font-black uppercase tracking-wider transition-colors hover:text-red-500"
               style={{ color: '#444' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#EF4444' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#444' }}
             >
               Logout
             </button>
