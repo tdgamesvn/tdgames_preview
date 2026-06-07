@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ProjectForm } from '@/components/dashboard/project-form'
+import { ClientForm } from '@/components/dashboard/client-form'
 import { deleteProject } from '@/lib/actions/projects'
 import type { PrvClient, PrvProject } from '@/lib/types/database'
 
@@ -43,7 +44,10 @@ export default async function ClientDetailPage({
             /{client.slug}
           </p>
         </div>
-        <ProjectForm clientId={client.id} />
+        <div className="flex items-center gap-2">
+          <ClientForm mode="edit" client={client} />
+          <ProjectForm clientId={client.id} />
+        </div>
       </div>
 
       {/* Empty state */}
