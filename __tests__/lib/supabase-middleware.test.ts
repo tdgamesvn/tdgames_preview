@@ -18,8 +18,8 @@ describe('getRedirectPath', () => {
     expect(getRedirectPath('client', '/dashboard')).toBe('/portal')
   })
 
-  it('internal user on /portal → /dashboard (wrong role)', () => {
-    expect(getRedirectPath('internal', '/portal')).toBe('/dashboard')
+  it('internal user on /portal → null (allowed, preview-as-client)', () => {
+    expect(getRedirectPath('internal', '/portal')).toBeNull()
   })
 
   it('logged-in user on /login → / (already authed)', () => {

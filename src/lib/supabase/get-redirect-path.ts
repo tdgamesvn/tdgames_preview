@@ -33,11 +33,10 @@ export function getRedirectPath(
     return null
   }
 
-  // Portal → client only
+  // Portal → client or internal (internal can preview as client)
   if (pathname.startsWith('/portal')) {
     if (!isAuthed) return '/login'
-    if (role === 'internal') return '/dashboard'
-    return null
+    return null  // both 'client' and 'internal' may access portal pages
   }
 
   return null
