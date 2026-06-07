@@ -51,7 +51,7 @@ export async function AssetGrid({ projectId, serviceType, spineVersion, taskId }
 
   return (
     <div className="space-y-4">
-      <AssetUpload projectId={projectId} serviceType={serviceType} taskId={taskId} />
+      <AssetUpload projectId={projectId} serviceType={serviceType} taskId={taskId} existingAssets={assetList} />
       <AssetGridClient
         assets={assetList}
         serviceType={serviceType}
