@@ -91,7 +91,7 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 - **Phase đang làm:** P6 ✅ COMPLETE — tất cả phases P1–P6 đã xong
 - **Branch hiện tại:** `main`
 - **Vừa hoàn thành:** P6 Portal Cinematic Redesign — dark layout, cinematic project cards, scroll zones A–E cho character page, SpineAvatarPreview forwardRef, pill buttons gallery. 46/46 tests pass. Commit `a885037`, pushed → auto-deploy.
-- **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
+- **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh. Các feature gần đây: rename Client/Project/Character, auto-resize ảnh upload, VFX inline autoplay, Art grid full-width.
 
 ### Context quan trọng
 <!-- Ghi lại những gì cần nhớ giữa các session: config đặc biệt, bug đã gặp, quyết định đột xuất -->

@@ -1,5 +1,15 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Dashboard features + UX improvements)
+- **Rename Client/Project/Character** (commit `0c62569`):
+  - `updateTask` server action mới (update `Prv_tasks.name`)
+  - `RenameTaskButton` client component: click tên → inline input → Enter/Escape/✓/✗
+  - `ProjectSettingsForm`: thêm Name + Description fields (action đã hỗ trợ, chỉ thiếu UI)
+  - Client rename: đã có qua ClientForm dialog
+- **Auto-resize ảnh upload** (commit `5edd2b3`): Canvas API resize ảnh > 1920px trước khi upload. PNG giữ alpha, JPG/WebP → JPEG 88%. Feedback "Compressing… (40MB → 3MB)".
+- **VFX inline auto-play** (commit `1f2bd8f`): `VfxInlineGrid` với IntersectionObserver — video play khi scroll đến, pause khi ra ngoài.
+- 46/46 tests pass.
+
 ## 2026-06-07 (Bugfixes + Portal UX improvements post-P6)
 - **Fix crash portal layout**: `onMouseEnter`/`onMouseLeave` trong server component → RSC serialize error → global-error.tsx. Fix: Tailwind `hover:text-red-500`. (commit `43f526b`)
 - **Fix middleware**: internal users bị block khỏi `/portal/*` → "Preview as Client" không hoạt động. Fix: allow both roles. (commit `fdd3299`)
