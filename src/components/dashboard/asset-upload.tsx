@@ -17,6 +17,50 @@ const acceptHint: Record<ServiceType, string> = {
   vfx:       'GIF · MP4 · WebM · Unity Package',
 }
 
+/** Resize image so its longest side ≤ MAX_PX. Returns original file if not an
+ *  image, already small enough, or if the format can't be decoded (PSD, GIF…). */
+const MAX_PX = 1920
+
+async function resizeImageIfNeeded(file: File): Promise<File> {
+  const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+  if (!IMAGE_TYPES.includes(file.type)) return file          // non-image — skip
+
+  return new Promise<File>((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const { naturalWidth: w, naturalHeight: h } = img
+      if (w <= MAX_PX && h <= MAX_PX) { resolve(file); return } // already small
+
+      const ratio  = Math.min(MAX_PX / w, MAX_PX / h)
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(w * ratio)
+      canvas.height = Math.round(h * ratio)
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+      // Preserve format: PNG keeps alpha, others → JPEG for smaller size
+      const mimeOut   = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
+      const quality   = mimeOut === 'image/jpeg' ? 0.88 : undefined
+      const extOut    = mimeOut === 'image/png'  ? 'png' : 'jpg'
+      const baseName  = file.name.replace(/\.[^.]+$/, '')
+      const newName   = `${baseName}.${extOut}`
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return }                 // fallback: original
+          resolve(new File([blob], newName, { type: mimeOut }))
+        },
+        mimeOut,
+        quality,
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) } // decode failed
+    img.src = url
+  })
+}
+
 function getExtension(filename: string): string {
   // Handle .atlas.txt → atlas, .skel.bytes → skel, etc.
   const parts = filename.split('.')
@@ -39,18 +83,28 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
     setUploading(true)
     setDone(false)
     setError(null)
-    setProgress(`Uploading ${file.name}…`)
 
     try {
-      const ext       = getExtension(file.name)
-      const uniqueKey = `assets/${projectId}/${Date.now()}-${file.name}`
+      // Resize images > 1920px before upload
+      setProgress(`Compressing ${file.name}…`)
+      const processed = await resizeImageIfNeeded(file)
+      if (processed !== file) {
+        const origKB = Math.round(file.size / 1024)
+        const newKB  = Math.round(processed.size / 1024)
+        setProgress(`Uploading ${processed.name} (${origKB}KB → ${newKB}KB)…`)
+      } else {
+        setProgress(`Uploading ${file.name}…`)
+      }
+
+      const ext       = getExtension(processed.name)
+      const uniqueKey = `assets/${projectId}/${Date.now()}-${processed.name}`
 
       const formData = new FormData()
-      formData.append('file',         file)
+      formData.append('file',         processed)
       formData.append('project_id',   projectId)
       formData.append('service_type', serviceType)
       formData.append('r2_key',       uniqueKey)
-      formData.append('name',         file.name)
+      formData.append('name',         processed.name)
       formData.append('file_type',    ext)
       formData.append('task_id',      taskId ?? 'null')
 
@@ -65,7 +119,7 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
       }
 
       setDone(true)
-      setProgress(`${file.name} uploaded`)
+      setProgress(`${processed.name} uploaded`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
