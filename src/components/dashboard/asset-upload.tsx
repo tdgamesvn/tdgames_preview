@@ -67,6 +67,22 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
   })
 }
 
+/** OS/system files that should never be uploaded (Windows, macOS, etc.). */
+const SYSTEM_FILE_NAMES = new Set([
+  'desktop.ini', 'thumbs.db', 'thumbs.db:encryptable',
+  '.ds_store', '.localized', '.spotlight-v100', '.trashes',
+  '.fseventsd', '.temporaryitems', '.apdisk',
+])
+
+function isSystemFile(name: string): boolean {
+  const lower = name.toLowerCase()
+  // Exact system file names
+  if (SYSTEM_FILE_NAMES.has(lower)) return true
+  // Mac resource forks (._filename) and hidden dot-files
+  if (lower.startsWith('._') || lower.startsWith('.')) return true
+  return false
+}
+
 function getExtension(filename: string): string {
   // Handle .atlas.txt → atlas, .skel.bytes → skel, etc.
   const parts = filename.split('.')
@@ -190,10 +206,14 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
   async function handleFilesArray(files: File[]) {
     if (!files?.length) return
 
+    // Strip OS/system files (desktop.ini, .DS_Store, ._*, …) before any processing
+    const filtered = files.filter((f) => !isSystemFile(f.name))
+    if (!filtered.length) return
+
     const newConfirms: PendingConfirm[] = []
     const directUploads: File[] = []
 
-    for (const file of Array.from(files)) {
+    for (const file of Array.from(filtered)) {
       const match = existingAssets.find(
         (a) => a.name.toLowerCase() === file.name.toLowerCase(),
       )
