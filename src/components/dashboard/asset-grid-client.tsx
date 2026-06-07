@@ -103,15 +103,30 @@ export function AssetGridClient({
                   atlasName={`${base}.atlas`}
                   spineVersion={spineVersion}
                 />
-                <details className="text-xs" style={{ color: '#666' }}>
-                  <summary className="cursor-pointer select-none py-1.5 hover:text-white transition-colors font-semibold">
-                    ▾ &nbsp;Source files ({setFiles.length})
-                  </summary>
-                  <div className="mt-3 space-y-2">
+                {/* Source files — always expanded, Delete All in header row */}
+                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-3 py-2"
+                    style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                    <span className="text-xs font-semibold" style={{ color: '#666' }}>
+                      Source files ({setFiles.length})
+                    </span>
+                    {!readonly && setFiles.length > 1 && (
+                      <button
+                        onClick={(e) => handleDeleteAll(e, setFiles)}
+                        disabled={deletingAll}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
+                        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}
+                      >
+                        <Trash2 size={11} />
+                        {deletingAll ? 'Deleting…' : 'Delete all'}
+                      </button>
+                    )}
+                  </div>
+                  {/* File rows */}
+                  <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
                     {setFiles.map(f => (
-                      <div key={f.id}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                      <div key={f.id} className="flex items-center gap-3 px-3 py-2.5">
                         <span className="text-white text-sm font-medium flex-1 truncate" title={f.name}>{f.name}</span>
                         <button onClick={() => downloadAsset(f.id, f.name)}
                           className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-[#FF9500] transition-colors" title="Download">
@@ -125,19 +140,8 @@ export function AssetGridClient({
                         )}
                       </div>
                     ))}
-                    {!readonly && setFiles.length > 1 && (
-                      <button
-                        onClick={(e) => handleDeleteAll(e, setFiles)}
-                        disabled={deletingAll}
-                        className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
-                        style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}
-                      >
-                        <Trash2 size={12} />
-                        {deletingAll ? 'Deleting…' : `Delete all ${setFiles.length} files`}
-                      </button>
-                    )}
                   </div>
-                </details>
+                </div>
               </div>
             )
           })}
