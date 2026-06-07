@@ -2,13 +2,19 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload, CheckCircle2, Loader2 } from 'lucide-react'
-import type { ServiceType } from '@/lib/types/database'
+import { Upload, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react'
+import type { PrvAsset, ServiceType } from '@/lib/types/database'
 
 interface AssetUploadProps {
   projectId: string
   serviceType: ServiceType
   taskId?: string | null
+  existingAssets?: PrvAsset[]
+}
+
+interface PendingConfirm {
+  file: File
+  match: PrvAsset
 }
 
 const acceptHint: Record<ServiceType, string> = {
@@ -70,7 +76,7 @@ function getExtension(filename: string): string {
   return parts.pop()?.toLowerCase() ?? 'bin'
 }
 
-export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps) {
+export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [] }: AssetUploadProps) {
   const router   = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging,  setDragging]  = useState(false)
@@ -78,8 +84,10 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
   const [progress,  setProgress]  = useState<string | null>(null)
   const [done,      setDone]      = useState(false)
   const [error,     setError]     = useState<string | null>(null)
+  const [pendingConfirms, setPendingConfirms] = useState<PendingConfirm[]>([])
 
-  async function uploadFile(file: File) {
+  /** Upload a file. If `replaceAsset` is provided, sends replace_asset_id + old_r2_key. */
+  async function uploadFile(file: File, replaceAsset?: PrvAsset) {
     setUploading(true)
     setDone(false)
     setError(null)
@@ -108,6 +116,11 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
       formData.append('file_type',    ext)
       formData.append('task_id',      taskId ?? 'null')
 
+      if (replaceAsset) {
+        formData.append('replace_asset_id', replaceAsset.id)
+        formData.append('old_r2_key',       replaceAsset.r2_key)
+      }
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body:   formData,
@@ -115,11 +128,11 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? "Upload failed (" + res.status + ")")
+        throw new Error(body.error ?? `Upload failed (${res.status})`)
       }
 
       setDone(true)
-      setProgress(`${processed.name} uploaded`)
+      setProgress(`${processed.name} ${replaceAsset ? 'replaced' : 'uploaded'}`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed')
@@ -129,15 +142,50 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
     }
   }
 
+  /** For each file: if name matches an existing asset → queue confirm; else upload directly. */
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return
+
+    const newConfirms: PendingConfirm[] = []
+    const directUploads: File[] = []
+
     for (const file of Array.from(files)) {
+      const match = existingAssets.find(
+        (a) => a.name.toLowerCase() === file.name.toLowerCase(),
+      )
+      if (match) {
+        newConfirms.push({ file, match })
+      } else {
+        directUploads.push(file)
+      }
+    }
+
+    if (newConfirms.length > 0) {
+      setPendingConfirms((prev) => [...prev, ...newConfirms])
+    }
+
+    for (const file of directUploads) {
       await uploadFile(file)
     }
   }
 
+  function dismissConfirm(file: File) {
+    setPendingConfirms((prev) => prev.filter((c) => c.file !== file))
+  }
+
+  async function handleReplace(confirm: PendingConfirm) {
+    dismissConfirm(confirm.file)
+    await uploadFile(confirm.file, confirm.match)
+  }
+
+  async function handleAddNew(confirm: PendingConfirm) {
+    dismissConfirm(confirm.file)
+    await uploadFile(confirm.file)
+  }
+
   return (
     <div className="space-y-2">
+      {/* Drop zone */}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
@@ -180,6 +228,45 @@ export function AssetUpload({ projectId, serviceType, taskId }: AssetUploadProps
       <input ref={inputRef} type="file" multiple className="hidden"
         onChange={(e) => handleFiles(e.target.files)} />
 
+      {/* Inline replace confirm chips */}
+      {pendingConfirms.map(({ file, match }) => (
+        <div
+          key={file.name}
+          className="rounded-xl px-3 py-2.5 flex items-start gap-2.5"
+          style={{
+            background: 'rgba(245,158,11,0.07)',
+            border:     '1px solid rgba(245,158,11,0.22)',
+          }}
+        >
+          <AlertTriangle size={15} className="shrink-0 mt-0.5" style={{ color: '#F59E0B' }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold truncate" style={{ color: '#F0F0F0' }}>
+              <span style={{ color: '#F59E0B' }}>{file.name}</span> already exists
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: '#888' }}>
+              Replace the existing file or add it as a new asset?
+            </p>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => handleReplace({ file, match })}
+                className="text-xs font-semibold px-3 py-1 rounded-lg transition-colors"
+                style={{ background: 'rgba(255,149,0,0.15)', color: '#FF9500', border: '1px solid rgba(255,149,0,0.3)' }}
+              >
+                Replace
+              </button>
+              <button
+                onClick={() => handleAddNew({ file, match })}
+                className="text-xs font-semibold px-3 py-1 rounded-lg transition-colors"
+                style={{ background: 'rgba(255,255,255,0.06)', color: '#888', border: '1px solid rgba(255,255,255,0.1)' }}
+              >
+                Add new
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Error banner */}
       {error && (
         <div className="rounded-xl px-3 py-2 text-xs font-medium"
           style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
