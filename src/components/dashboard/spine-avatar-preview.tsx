@@ -178,16 +178,11 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
 
-    const transform =
-      autoFit && (scale !== 1 || offsetX !== 0 || offsetY !== 0)
-        ? `translate(${offsetX}%, ${offsetY}%) scale(${scale})`
-        : undefined
-
+    // In autoFit mode, scale/offsetX/offsetY are only meaningful in viewport mode.
+    // Do NOT apply them as CSS transforms — that would push the canvas off-screen
+    // when world-unit values (e.g. scale=5, offsetY=1000) are stored in the DB.
     return (
-      <div
-        className="w-full h-full"
-        style={{ background: 'transparent', transform, transformOrigin: 'center' }}
-      >
+      <div className="w-full h-full" style={{ background: 'transparent' }}>
         <div ref={containerRef} className="w-full h-full" />
       </div>
     )

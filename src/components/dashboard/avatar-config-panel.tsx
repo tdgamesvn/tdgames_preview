@@ -276,7 +276,6 @@ export function AvatarConfigPanel({
                 scale={scale}
                 offsetX={offsetX}
                 offsetY={offsetY}
-                autoFit
                 backgroundColor={bg}
                 spineVersion={spineVersion}
                 onLoaded={setLoaded}
