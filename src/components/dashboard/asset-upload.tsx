@@ -78,7 +78,8 @@ function getExtension(filename: string): string {
 
 export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [] }: AssetUploadProps) {
   const router   = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef       = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
   const [dragging,  setDragging]  = useState(false)
   const [uploading, setUploading] = useState(false)
   const [progress,  setProgress]  = useState<string | null>(null)
@@ -142,8 +143,51 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
     }
   }
 
-  /** For each file: if name matches an existing asset → queue confirm; else upload directly. */
+  /** Recursively collect all files from a FileSystemEntry (handles folders). */
+  async function collectFromEntry(entry: FileSystemEntry): Promise<File[]> {
+    if (entry.isFile) {
+      return new Promise<File[]>((resolve) => {
+        (entry as FileSystemFileEntry).file(
+          (f) => resolve([f]),
+          () => resolve([]),
+        )
+      })
+    }
+    if (entry.isDirectory) {
+      const reader = (entry as FileSystemDirectoryEntry).createReader()
+      const entries = await new Promise<FileSystemEntry[]>((resolve) => {
+        reader.readEntries(resolve, () => resolve([]))
+      })
+      const nested = await Promise.all(entries.map(collectFromEntry))
+      return nested.flat()
+    }
+    return []
+  }
+
+  /** Handle drop — supports both files and folders via DataTransferItem API. */
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(false)
+    const items = Array.from(e.dataTransfer.items)
+    const entries = items
+      .map((item) => item.webkitGetAsEntry?.())
+      .filter(Boolean) as FileSystemEntry[]
+
+    if (entries.length === 0) {
+      // Fallback: no entry API — use plain files
+      return handleFiles(e.dataTransfer.files)
+    }
+    const allFiles = (await Promise.all(entries.map(collectFromEntry))).flat()
+    await handleFilesArray(allFiles)
+  }
+
   async function handleFiles(files: FileList | null) {
+    if (!files?.length) return
+    await handleFilesArray(Array.from(files))
+  }
+
+  /** For each file: if name matches an existing asset → queue confirm; else upload directly. */
+  async function handleFilesArray(files: File[]) {
     if (!files?.length) return
 
     const newConfirms: PendingConfirm[] = []
@@ -189,7 +233,7 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
-        onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+        onDrop={handleDrop}
         onClick={() => !uploading && inputRef.current?.click()}
         className="relative rounded-2xl transition-all cursor-pointer select-none"
         style={{
@@ -221,12 +265,32 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
               {dragging ? 'Release to upload' : 'Drop files here or click to browse'}
             </p>
             <p className="text-xs mt-1" style={{ color: '#444' }}>{acceptHint[serviceType]}</p>
+            {serviceType === 'animation' && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); folderInputRef.current?.click() }}
+                className="mt-2 text-xs font-semibold px-3 py-1 rounded-lg transition-colors"
+                style={{ background: 'rgba(255,149,0,0.08)', color: '#FF9500', border: '1px solid rgba(255,149,0,0.2)' }}
+              >
+                📁 Or pick folder (JSON + atlas + textures)
+              </button>
+            )}
           </>
         )}
       </div>
 
       <input ref={inputRef} type="file" multiple className="hidden"
         onChange={(e) => handleFiles(e.target.files)} />
+      {/* Folder picker — animation tab only */}
+      <input
+        ref={folderInputRef}
+        type="file"
+        // @ts-expect-error webkitdirectory is non-standard but widely supported
+        webkitdirectory=""
+        multiple
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
 
       {/* Inline replace confirm chips */}
       {pendingConfirms.map(({ file, match }) => (
