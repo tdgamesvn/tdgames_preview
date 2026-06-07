@@ -47,6 +47,7 @@ export function AssetGridClient({
   const router = useRouter()
   const [viewingAsset, setViewingAsset] = useState<PrvAsset | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [deletingAll, setDeletingAll] = useState(false)
 
   if (!assets.length) {
     if (readonly) {
@@ -73,6 +74,15 @@ export function AssetGridClient({
     router.refresh()
   }
 
+  async function handleDeleteAll(e: React.MouseEvent, files: PrvAsset[]) {
+    e.stopPropagation()
+    if (!confirm(`Delete all ${files.length} source files?`)) return
+    setDeletingAll(true)
+    await Promise.all(files.map(f => fetch(`/api/assets/${f.id}`, { method: 'DELETE' })))
+    setDeletingAll(false)
+    router.refresh()
+  }
+
   // Animation tab: show the playable Spine inline instead of the raw json/png/
   // atlas files. Group files by base name; each set with a .json is one player.
   if (serviceType === 'animation' && spineVersion) {
@@ -94,27 +104,38 @@ export function AssetGridClient({
                   spineVersion={spineVersion}
                 />
                 <details className="text-xs" style={{ color: '#666' }}>
-                  <summary className="cursor-pointer select-none py-1 hover:text-white transition-colors">
-                    Source files ({setFiles.length})
+                  <summary className="cursor-pointer select-none py-1.5 hover:text-white transition-colors font-semibold">
+                    ▾ &nbsp;Source files ({setFiles.length})
                   </summary>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-3 space-y-2">
                     {setFiles.map(f => (
                       <div key={f.id}
-                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <span className="text-white">{f.name}</span>
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                        <span className="text-white text-sm font-medium flex-1 truncate" title={f.name}>{f.name}</span>
                         <button onClick={() => downloadAsset(f.id, f.name)}
-                          className="text-neutral-400 hover:text-[#FF9500]" title="Download">
-                          <Download size={12} />
+                          className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-[#FF9500] transition-colors" title="Download">
+                          <Download size={14} />
                         </button>
                         {!readonly && (
                           <button onClick={(e) => handleDelete(e, f.id)} disabled={deleting === f.id}
-                            className="text-neutral-400 hover:text-red-400" title="Delete">
-                            <Trash2 size={12} />
+                            className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/10 text-neutral-400 hover:text-red-400 transition-colors disabled:opacity-40" title="Delete">
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>
                     ))}
+                    {!readonly && setFiles.length > 1 && (
+                      <button
+                        onClick={(e) => handleDeleteAll(e, setFiles)}
+                        disabled={deletingAll}
+                        className="w-full mt-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40"
+                        style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}
+                      >
+                        <Trash2 size={12} />
+                        {deletingAll ? 'Deleting…' : `Delete all ${setFiles.length} files`}
+                      </button>
+                    )}
                   </div>
                 </details>
               </div>
