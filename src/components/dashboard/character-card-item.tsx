@@ -63,9 +63,7 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
         {showSpine && (
           <SpineAvatarPreview
             {...spineConfig!}
-            // Do NOT use autoFit — it ignores scale/offset and shows different
-            // framing than the avatar config panel. Use the fixed viewport with
-            // the DB-configured scale/offsetX/offsetY so card matches exactly.
+            autoFit
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             backgroundColor={(task as any).avatar_bg ?? '#00000000'}
             onError={() => setSpineError(true)}
