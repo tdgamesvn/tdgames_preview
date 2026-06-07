@@ -40,6 +40,7 @@ export interface PrvTask {
   avatar_asset_id: string | null
   avatar_animation: string | null
   avatar_skin: string | null
+  avatar_bg: string | null
   avatar_scale: number
   avatar_offset_x: number
   avatar_offset_y: number

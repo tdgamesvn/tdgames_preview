@@ -45,6 +45,7 @@ export async function updateTaskAvatar(params: {
   avatar_asset_id: string | null
   avatar_animation: string | null
   avatar_skin?: string | null
+  avatar_bg?: string | null
   avatar_scale: number
   avatar_offset_x: number
   avatar_offset_y: number
@@ -56,6 +57,7 @@ export async function updateTaskAvatar(params: {
       avatar_asset_id: params.avatar_asset_id,
       avatar_animation: params.avatar_animation,
       avatar_skin: params.avatar_skin ?? null,
+      avatar_bg: params.avatar_bg ?? null,
       avatar_scale: params.avatar_scale,
       avatar_offset_x: params.avatar_offset_x,
       avatar_offset_y: params.avatar_offset_y,

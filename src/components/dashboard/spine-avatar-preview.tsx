@@ -15,8 +15,8 @@ interface SpineAvatarPreviewProps {
   scale?: number
   offsetX?: number
   offsetY?: number
-  /** When true, let the Spine player auto-fit each animation's bounds to the
-   *  box (per-animation + per-character sizing) instead of a fixed viewport. */
+  /** When true, the player auto-fits each animation's bounds to the box, and
+   *  scale/offset are applied as a CSS transform on top (manual zoom/move). */
   autoFit?: boolean
   /** Canvas clear color (hex, 8-digit allows alpha). Default transparent. */
   backgroundColor?: string
@@ -48,11 +48,17 @@ export function SpineAvatarPreview({
 }: SpineAvatarPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const initializedRef = useRef(false)
-  // Keep latest callbacks without forcing the player to re-init on every render.
+  // Keep latest values without forcing the player to re-init on every change.
   const onErrorRef = useRef(onError)
   const onLoadedRef = useRef(onLoaded)
+  const scaleRef = useRef(scale)
+  const offsetXRef = useRef(offsetX)
+  const offsetYRef = useRef(offsetY)
   onErrorRef.current = onError
   onLoadedRef.current = onLoaded
+  scaleRef.current = scale
+  offsetXRef.current = offsetX
+  offsetYRef.current = offsetY
 
   useEffect(() => {
     const container = containerRef.current
@@ -97,6 +103,22 @@ export function SpineAvatarPreview({
 
         initializedRef.current = true
 
+        // autoFit → let the player compute each animation's bounding box and fit
+        // it (with padding); manual scale/offset are applied via CSS transform.
+        // Otherwise use a fixed 200-unit world window driven by scale/offset.
+        const viewport = autoFit
+          ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
+          : {
+              x: -100 * scaleRef.current + offsetXRef.current,
+              y: -100 * scaleRef.current + offsetYRef.current,
+              width: 200 * scaleRef.current,
+              height: 200 * scaleRef.current,
+              padLeft: '0%',
+              padRight: '0%',
+              padTop: '0%',
+              padBottom: '0%',
+            }
+
         new SpinePlayerClass(containerRef.current, {
           jsonUrl,
           atlasUrl,
@@ -106,20 +128,7 @@ export function SpineAvatarPreview({
           backgroundColor,
           premultipliedAlpha: true,
           defaultMix: 0.2,
-          // autoFit: omit numeric bounds → player auto-computes the current
-          // animation's bounding box and fits it (with padding) into the box.
-          viewport: autoFit
-            ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
-            : {
-                x: -100 * scale + offsetX,
-                y: -100 * scale + offsetY,
-                width: 200 * scale,
-                height: 200 * scale,
-                padLeft: '0%',
-                padRight: '0%',
-                padTop: '0%',
-                padBottom: '0%',
-              },
+          viewport,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           success: (player: any) => {
             if (cancelled) return
@@ -150,13 +159,24 @@ export function SpineAvatarPreview({
       cancelled = true
       observer.disconnect()
     }
-  }, [jsonUrl, atlasUrl, animationName, skinName, scale, offsetX, offsetY, autoFit, backgroundColor, spineVersion])
+    // scale/offset are intentionally excluded: in autoFit they're CSS-only (no
+    // re-init); in fixed mode they're read once at init via refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
+
+  // In autoFit mode, manual zoom/move is a CSS transform so dragging the
+  // sliders updates instantly without reloading the skeleton.
+  const transform =
+    autoFit && (scale !== 1 || offsetX !== 0 || offsetY !== 0)
+      ? `translate(${offsetX}%, ${offsetY}%) scale(${scale})`
+      : undefined
 
   return (
     <div
-      ref={containerRef}
       className="w-full h-full"
-      style={{ background: 'transparent' }}
-    />
+      style={{ background: 'transparent', transform, transformOrigin: 'center' }}
+    >
+      <div ref={containerRef} className="w-full h-full" />
+    </div>
   )
 }

@@ -37,6 +37,16 @@ export function AvatarConfigPanel({
   const [scale, setScale]         = useState<number>(task.avatar_scale ?? 1)
   const [offsetX, setOffsetX]     = useState<number>(task.avatar_offset_x ?? 0)
   const [offsetY, setOffsetY]     = useState<number>(task.avatar_offset_y ?? 0)
+  const [bg, setBg]               = useState<string>(task.avatar_bg ?? '#00000000')
+
+  const BACKGROUNDS: { label: string; value: string }[] = [
+    { label: 'Transparent', value: '#00000000' },
+    { label: 'Dark', value: '#16161aff' },
+    { label: 'Gray', value: '#3a3a3aff' },
+    { label: 'White', value: '#ffffffff' },
+    { label: 'Green', value: '#00b140ff' },
+  ]
+  const previewBg = bg === '#00000000' ? 'rgba(255,255,255,0.02)' : `#${bg.slice(1, 7)}`
 
   // Animations + skins discovered at runtime from the loaded skeleton.
   const [loaded, setLoaded] = useState<SpineLoadedData | null>(null)
@@ -79,6 +89,7 @@ export function AvatarConfigPanel({
         avatar_asset_id: assetId || null,
         avatar_animation: animation || null,
         avatar_skin: skin || null,
+        avatar_bg: bg || null,
         avatar_scale: scale,
         avatar_offset_x: offsetX,
         avatar_offset_y: offsetY,
@@ -167,6 +178,23 @@ export function AvatarConfigPanel({
             </div>
           )}
 
+          {/* Background */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
+              Background
+            </label>
+            <select
+              value={bg}
+              onChange={e => setBg(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
+              style={selectStyle}
+            >
+              {BACKGROUNDS.map(b => (
+                <option key={b.value} value={b.value}>{b.label}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Scale */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
@@ -234,13 +262,13 @@ export function AvatarConfigPanel({
             style={{
               width: '200px',
               height: '200px',
-              background: 'rgba(255,255,255,0.02)',
+              background: previewBg,
               border: '1px solid rgba(255,255,255,0.07)',
             }}
           >
             {previewUrls && spineVersion ? (
               <SpineAvatarPreview
-                key={`${assetId}-${animation}-${skin}-${scale}-${offsetX}-${offsetY}`}
+                key={`${assetId}-${animation}-${skin}-${bg}`}
                 jsonUrl={previewUrls.jsonUrl}
                 atlasUrl={previewUrls.atlasUrl}
                 animationName={animation}
@@ -248,6 +276,8 @@ export function AvatarConfigPanel({
                 scale={scale}
                 offsetX={offsetX}
                 offsetY={offsetY}
+                autoFit
+                backgroundColor={bg}
                 spineVersion={spineVersion}
                 onLoaded={setLoaded}
               />

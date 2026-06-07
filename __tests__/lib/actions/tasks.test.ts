@@ -59,6 +59,7 @@ describe('updateTaskAvatar', () => {
       avatar_asset_id: 'a1',
       avatar_animation: 'idle',
       avatar_skin: null,
+      avatar_bg: null,
       avatar_scale: 1.5,
       avatar_offset_x: 10,
       avatar_offset_y: -5,
