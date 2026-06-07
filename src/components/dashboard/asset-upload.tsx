@@ -110,9 +110,17 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
     setError(null)
 
     try {
-      // Resize images > 1920px before upload
-      setProgress(`Compressing ${file.name}…`)
-      const processed = await resizeImageIfNeeded(file)
+      // Resize images > 1920px before upload.
+      // SKIP resize for animation assets — Spine texture PNGs must keep their
+      // exact dimensions (typically POT: 2048×2048, 4096×4096). Resizing to
+      // 1920px produces NPOT textures AND invalidates the UV coordinates baked
+      // into the .atlas file (which still records the original size), causing
+      // the Spine runtime to fail entirely.
+      let processed = file
+      if (serviceType !== 'animation') {
+        setProgress(`Compressing ${file.name}…`)
+        processed = await resizeImageIfNeeded(file)
+      }
       if (processed !== file) {
         const origKB = Math.round(file.size / 1024)
         const newKB  = Math.round(processed.size / 1024)
