@@ -36,6 +36,44 @@ function getScriptUrl(version: string) {
   return `${CDN_BASE}@${version}/dist/iife/spine-player.js`
 }
 
+/**
+ * Module-level promise cache: ensures concurrent Spine players all await the
+ * SAME load promise instead of each assuming "script element present = loaded".
+ * Without this, cards 2+ skip the await and hit window.spine = undefined.
+ */
+const spineScriptPromises: Partial<Record<string, Promise<void>>> = {}
+
+function ensureSpineScript(version: string): Promise<void> {
+  const scriptId = `spine-js-${version}`
+  if (spineScriptPromises[scriptId]) return spineScriptPromises[scriptId]
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((window as any).spine?.SpinePlayer) {
+    spineScriptPromises[scriptId] = Promise.resolve()
+    return spineScriptPromises[scriptId]
+  }
+
+  const existing = document.getElementById(scriptId)
+  if (existing) {
+    // Script tag in DOM but not yet loaded — attach to its events.
+    spineScriptPromises[scriptId] = new Promise<void>((resolve, reject) => {
+      existing.addEventListener('load', () => resolve(), { once: true })
+      existing.addEventListener('error', () => reject(new Error(`Failed to load Spine v${version}`)), { once: true })
+    })
+    return spineScriptPromises[scriptId]
+  }
+
+  spineScriptPromises[scriptId] = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script')
+    script.id = scriptId
+    script.src = getScriptUrl(version)
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error(`Failed to load Spine v${version}`))
+    document.body.appendChild(script)
+  })
+  return spineScriptPromises[scriptId]
+}
+
 export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvatarPreviewProps>(
   function SpineAvatarPreview(
     {
@@ -99,17 +137,7 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
       async function init() {
         if (cancelled) return
         try {
-          const scriptId = `spine-js-${spineVersion}`
-          if (!document.getElementById(scriptId)) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script')
-              script.id = scriptId
-              script.src = getScriptUrl(spineVersion)
-              script.onload = () => resolve()
-              script.onerror = () => reject(new Error(`Failed to load Spine v${spineVersion}`))
-              document.body.appendChild(script)
-            })
-          }
+          await ensureSpineScript(spineVersion)
 
           if (cancelled || !containerRef.current) return
 

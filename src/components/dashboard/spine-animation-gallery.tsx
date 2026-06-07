@@ -30,6 +30,8 @@ export function SpineAnimationGallery({
   const [skin, setSkin] = useState<string>('')
   const [bg, setBg] = useState<string>('#00000000')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  // Track which animation cells failed to render (Spine "bounds are invalid" etc.)
+  const [cellErrors, setCellErrors] = useState<Record<string, boolean>>({})
 
   const BACKGROUNDS: { label: string; value: string }[] = [
     { label: 'Transparent', value: '#00000000' },
@@ -133,40 +135,51 @@ export function SpineAnimationGallery({
 
       {/* One looping view per animation — portrait cells */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {animations.map(anim => (
-          <div
-            key={`${anim}-${skin}-${bg}`}
-            className="rounded-2xl overflow-hidden flex flex-col"
-            style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.07)',
-            }}
-          >
-            <div className="aspect-[3/4] relative" style={{ background: cellBg }}>
-              <SpineAvatarPreview
-                jsonUrl={jsonUrl}
-                atlasUrl={atlasUrl}
-                animationName={anim}
-                skinName={skin}
-                autoFit
-                backgroundColor={bg}
-                spineVersion={spineVersion}
-              />
-            </div>
+        {animations.map(anim => {
+          const cellKey = `${anim}-${skin}-${bg}`
+          const hasError = cellErrors[cellKey]
+          return (
             <div
-              className="px-3 py-2.5 shrink-0"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+              key={cellKey}
+              className="rounded-2xl overflow-hidden flex flex-col"
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
             >
-              <p
-                className="text-[10px] font-black uppercase tracking-wider truncate"
-                style={{ color: '#888' }}
-                title={anim}
+              <div className="aspect-[3/4] relative" style={{ background: cellBg }}>
+                {hasError ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="text-[10px]" style={{ color: '#444' }}>Preview unavailable</p>
+                  </div>
+                ) : (
+                  <SpineAvatarPreview
+                    jsonUrl={jsonUrl}
+                    atlasUrl={atlasUrl}
+                    animationName={anim}
+                    skinName={skin}
+                    autoFit
+                    backgroundColor={bg}
+                    spineVersion={spineVersion}
+                    onError={() => setCellErrors(prev => ({ ...prev, [cellKey]: true }))}
+                  />
+                )}
+              </div>
+              <div
+                className="px-3 py-2.5 shrink-0"
+                style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
               >
-                {anim}
-              </p>
+                <p
+                  className="text-[10px] font-black uppercase tracking-wider truncate"
+                  style={{ color: '#888' }}
+                  title={anim}
+                >
+                  {anim}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
