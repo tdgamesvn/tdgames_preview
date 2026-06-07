@@ -23,6 +23,17 @@ cp .env.production /tmp/tdgames-preview.env.bak 2>/dev/null || true
 echo "📦 Installing dependencies (npm ci)..."
 npm ci
 
+# Verify key packages were fully extracted (npm ci can succeed with exit 0
+# while leaving large packages like 'next' partially extracted on OOM/timeout).
+echo "🔍 Verifying critical packages..."
+node -e "require('./node_modules/next/package.json'); console.log('  next OK')" || {
+  echo "  ⚠️  next package incomplete — retrying npm ci..."
+  rm -rf node_modules
+  npm ci
+  node -e "require('./node_modules/next/package.json')" || { echo "❌ npm ci failed twice — aborting."; exit 1; }
+  echo "  ✅ next OK (after retry)"
+}
+
 echo "🔨 Building into a fresh release dir; live .next stays up..."
 mkdir -p "$RELEASES_DIR"
 REL_NAME="rel-$(date +%Y%m%d-%H%M%S)-$$"
