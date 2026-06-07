@@ -90,7 +90,7 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
 - **Phase đang làm:** Bugfix + incremental features (tất cả P1–P6 đã xong)
 - **Branch hiện tại:** `main`
-- **Vừa hoàn thành:** (1) Fix dropdown trắng toàn app — tailwind.config.ts thiếu color mappings (bg-popover etc.). (2) avatar-config-panel: native `<select>` → shadcn `<Select>`. (3) Asset Replace feature: khi upload file trùng tên → inline amber confirm chip "Replace / Add new"; API replace mode update DB + delete old R2 object. 49/49 tests. Commit `1509d9e`, pushed → auto-deploy.
+- **Vừa hoàn thành:** Production hotfix — `Cannot find module 'next/dist/compiled/cookie'` do `npm ci` partial extraction. Fix: `rm -rf node_modules && npm ci` + `pm2 restart`. Deploy script giờ có verify + retry step. Commit `0184f88`.
 - **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
 
 ### Context quan trọng

@@ -1,5 +1,11 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Production hotfix — Internal Server Error)
+- Lỗi: `Cannot find module 'next/dist/compiled/cookie'` → toàn bộ app 500.
+- Root cause: `npm ci` trên VPS bị partial extraction cho package `next` (OOM kill/timeout khi extract ~10k files). `node_modules/next/` chỉ có README + .d.ts stubs, thiếu `dist/compiled/` + `package.json`. PM2 đã restart 295 lần.
+- Fix: SSH → `rm -rf node_modules && npm ci` → `pm2 restart tdgames-preview` → app online.
+- Phòng ngừa: thêm verification step vào `scripts/deploy-remote.sh` — sau `npm ci` kiểm tra `next/package.json`, nếu thiếu thì retry lần 2, abort nếu vẫn fail. Commit `0184f88`, pushed.
+
 ## 2026-06-07 (Asset Replace feature)
 - fix: tailwind.config.ts thiếu color mappings cho shadcn (bg-popover, bg-muted, bg-accent...) → dropdown trắng trên toàn app. Fix: thêm đủ CSS var mappings. Commit `7fb79e7`, pushed.
 - feat: `POST /api/upload` replace mode — `replace_asset_id` + `old_r2_key` → UPDATE DB row thay vì INSERT, sau đó DELETE old R2 object (best-effort). Fail-safe: delete chỉ xảy ra sau khi DB update thành công. 3 tests mới.
