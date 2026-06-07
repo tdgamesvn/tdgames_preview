@@ -1,5 +1,12 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Asset Replace feature)
+- fix: tailwind.config.ts thiếu color mappings cho shadcn (bg-popover, bg-muted, bg-accent...) → dropdown trắng trên toàn app. Fix: thêm đủ CSS var mappings. Commit `7fb79e7`, pushed.
+- feat: `POST /api/upload` replace mode — `replace_asset_id` + `old_r2_key` → UPDATE DB row thay vì INSERT, sau đó DELETE old R2 object (best-effort). Fail-safe: delete chỉ xảy ra sau khi DB update thành công. 3 tests mới.
+- feat: `AssetGrid` pass `existingAssets` xuống `AssetUpload`.
+- feat: `AssetUpload` auto-match tên file (case-insensitive) với `existingAssets` → hiện inline amber confirm chip "X already exists — [Replace] [Add new]". Non-matching files upload thẳng như cũ.
+- 49/49 tests pass, pushed main → auto-deploy.
+
 ## 2026-06-07 (Dashboard features + UX improvements)
 - **Rename Client/Project/Character** (commit `0c62569`):
   - `updateTask` server action mới (update `Prv_tasks.name`)

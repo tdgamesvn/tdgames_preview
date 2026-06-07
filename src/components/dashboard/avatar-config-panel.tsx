@@ -2,6 +2,9 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { Save, Loader2 } from 'lucide-react'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 import { SpineAvatarPreview, type SpineLoadedData } from './spine-avatar-preview'
 import { updateTaskAvatar } from '@/lib/actions/tasks'
 import type { PrvTask, PrvAsset } from '@/lib/types/database'
@@ -103,9 +106,16 @@ export function AvatarConfigPanel({
     })
   }
 
-  const selectStyle = {
+  const triggerStyle = {
     background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    color: '#F0F0F0',
+  }
+  const contentStyle = {
+    background: '#161616',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 12,
   }
 
   return (
@@ -125,17 +135,20 @@ export function AvatarConfigPanel({
             <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
               Spine Animation Asset
             </label>
-            <select
+            <Select
               value={assetId}
-              onChange={e => { setAssetId(e.target.value); setAnimation(''); setSkin(''); setLoaded(null) }}
-              className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-              style={selectStyle}
+              onValueChange={v => { setAssetId(v === '__none__' ? '' : v); setAnimation(''); setSkin(''); setLoaded(null) }}
             >
-              <option value="">— None —</option>
-              {jsonAssets.map(a => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
+                <SelectValue placeholder="— None —" />
+              </SelectTrigger>
+              <SelectContent style={contentStyle}>
+                <SelectItem value="__none__">— None —</SelectItem>
+                {jsonAssets.map(a => (
+                  <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Animation (from skeleton) */}
@@ -144,17 +157,17 @@ export function AvatarConfigPanel({
               <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
                 Animation
               </label>
-              <select
-                value={animation}
-                onChange={e => setAnimation(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-                style={selectStyle}
-              >
-                <option value="">— Default (first) —</option>
-                {animOptions.map(anim => (
-                  <option key={anim} value={anim}>{anim}</option>
-                ))}
-              </select>
+              <Select value={animation || '__default__'} onValueChange={v => setAnimation(v === '__default__' ? '' : v)}>
+                <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={contentStyle}>
+                  <SelectItem value="__default__">— Default (first) —</SelectItem>
+                  {animOptions.map(anim => (
+                    <SelectItem key={anim} value={anim}>{anim}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -164,17 +177,17 @@ export function AvatarConfigPanel({
               <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
                 Skin
               </label>
-              <select
-                value={skin}
-                onChange={e => setSkin(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-                style={selectStyle}
-              >
-                <option value="">— Default —</option>
-                {skinOptions.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              <Select value={skin || '__default__'} onValueChange={v => setSkin(v === '__default__' ? '' : v)}>
+                <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent style={contentStyle}>
+                  <SelectItem value="__default__">— Default —</SelectItem>
+                  {skinOptions.map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
@@ -183,16 +196,16 @@ export function AvatarConfigPanel({
             <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
               Background
             </label>
-            <select
-              value={bg}
-              onChange={e => setBg(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
-              style={selectStyle}
-            >
-              {BACKGROUNDS.map(b => (
-                <option key={b.value} value={b.value}>{b.label}</option>
-              ))}
-            </select>
+            <Select value={bg} onValueChange={v => setBg(v)}>
+              <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent style={contentStyle}>
+                {BACKGROUNDS.map(b => (
+                  <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Scale */}
