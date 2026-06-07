@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Download } from 'lucide-react'
+import { Download, Maximize2 } from 'lucide-react'
 import { ImageLightbox, type LightboxAsset } from '@/components/preview/image-lightbox'
 
 interface ArtFilmstripProps {
@@ -20,43 +20,25 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
 
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          overflowX: 'auto',
-          paddingBottom: '8px',
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
+      {/* Responsive grid — show full image at a glance, click to fullscreen */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {assets.map((asset, idx) => (
-          <div
-            key={asset.id}
-            style={{ scrollSnapAlign: 'start', flexShrink: 0, position: 'relative' }}
-            className="group"
-          >
+          <div key={asset.id} className="group relative">
             <button
               onClick={() => setLightboxIndex(idx)}
+              className="block w-full rounded-2xl overflow-hidden cursor-zoom-in transition-all"
               style={{
-                display: 'block',
-                width: '120px',
-                height: '160px',
-                borderRadius: '10px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255,255,255,0.07)',
-                background: '#0a0a0a',
-                cursor: 'pointer',
-                transition: 'border-color 200ms, box-shadow 200ms',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
               }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLElement
                 el.style.borderColor = 'rgba(255,149,0,0.4)'
-                el.style.boxShadow = '0 4px 20px rgba(255,149,0,0.12)'
+                el.style.boxShadow = '0 8px 32px rgba(255,149,0,0.12)'
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLElement
-                el.style.borderColor = 'rgba(255,255,255,0.07)'
+                el.style.borderColor = 'rgba(255,255,255,0.08)'
                 el.style.boxShadow = 'none'
               }}
             >
@@ -64,18 +46,43 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
               <img
                 src={asset.presignedUrl}
                 alt={asset.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                className="w-full h-auto block"
+                style={{
+                  objectFit: 'contain',
+                  maxHeight: '480px',
+                  background: 'rgba(255,255,255,0.02)',
+                }}
               />
             </button>
-            {/* Download on hover */}
-            <button
-              onClick={() => handleDownload(asset.id)}
-              aria-label="Download"
-              className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md"
-              style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+
+            {/* Hover actions */}
+            <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => setLightboxIndex(idx)}
+                aria-label="Fullscreen"
+                className="p-1.5 rounded-lg"
+                style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+              >
+                <Maximize2 size={12} style={{ color: '#ccc' }} />
+              </button>
+              <button
+                onClick={() => handleDownload(asset.id)}
+                aria-label="Download"
+                className="p-1.5 rounded-lg"
+                style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+              >
+                <Download size={12} style={{ color: '#ccc' }} />
+              </button>
+            </div>
+
+            {/* File name */}
+            <p
+              className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider truncate px-1"
+              style={{ color: '#444' }}
+              title={asset.name}
             >
-              <Download size={10} style={{ color: '#888' }} />
-            </button>
+              {asset.name.replace(/\.[^.]+$/, '')}
+            </p>
           </div>
         ))}
       </div>
