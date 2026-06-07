@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { S3Client } from '@aws-sdk/client-s3'
 import type { ServiceType } from '@/lib/types/database'
 
@@ -32,22 +32,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   // Parse FormData
-  const formData  = await request.formData().catch(() => null)
+  const formData = await request.formData().catch(() => null)
   if (!formData) return NextResponse.json({ error: 'Invalid form data' }, { status: 400 })
 
-  const file        = formData.get('file') as File | null
-  const project_id  = formData.get('project_id')  as string | null
-  const service_type = formData.get('service_type') as ServiceType | null
-  const task_id     = formData.get('task_id')     as string | null  // may be 'null' string
-  const r2_key      = formData.get('r2_key')      as string | null
-  const name        = formData.get('name')        as string | null
-  const file_type   = formData.get('file_type')   as string | null
+  const file             = formData.get('file')             as File   | null
+  const project_id       = formData.get('project_id')       as string | null
+  const service_type     = formData.get('service_type')     as ServiceType | null
+  const task_id          = formData.get('task_id')          as string | null  // may be 'null' string
+  const r2_key           = formData.get('r2_key')           as string | null
+  const name             = formData.get('name')             as string | null
+  const file_type        = formData.get('file_type')        as string | null
+  // Replace-mode fields (optional)
+  const replace_asset_id = formData.get('replace_asset_id') as string | null
+  const old_r2_key       = formData.get('old_r2_key')       as string | null
 
   if (!file || !project_id || !service_type || !r2_key || !name || !file_type) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  // Upload to R2 server-side
+  // Upload new file to R2 (always happens first, whether insert or replace)
   const bytes = await file.arrayBuffer()
   const r2 = getR2Client()
   await r2.send(new PutObjectCommand({
@@ -57,8 +60,31 @@ export async function POST(request: NextRequest) {
     ContentType: file.type || 'application/octet-stream',
   }))
 
-  // Save record to Supabase
   const admin = createAdminClient() as any // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  // ── Replace mode ─────────────────────────────────────────────────────────────
+  if (replace_asset_id) {
+    const { data: asset, error } = await admin
+      .from('Prv_assets')
+      .update({ r2_key, name, file_type })
+      .eq('id', replace_asset_id)
+      .select()
+      .single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // Only delete old R2 object after DB is confirmed updated
+    if (old_r2_key) {
+      await r2.send(new DeleteObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Key:    old_r2_key,
+      })).catch(() => { /* best-effort — don't fail the request */ })
+    }
+
+    return NextResponse.json({ asset })
+  }
+
+  // ── Insert mode (default) ────────────────────────────────────────────────────
   const { data: asset, error } = await admin
     .from('Prv_assets')
     .insert({
