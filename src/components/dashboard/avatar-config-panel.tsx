@@ -137,7 +137,7 @@ export function AvatarConfigPanel({
             </label>
             <Select
               value={assetId}
-              onValueChange={v => { setAssetId(v === '__none__' ? '' : v); setAnimation(''); setSkin(''); setLoaded(null) }}
+              onValueChange={v => { setAssetId(v === '__none__' ? '' : (v ?? '')); setAnimation(''); setSkin(''); setLoaded(null) }}
             >
               <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
                 <SelectValue placeholder="— None —" />
@@ -157,7 +157,7 @@ export function AvatarConfigPanel({
               <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
                 Animation
               </label>
-              <Select value={animation || '__default__'} onValueChange={v => setAnimation(v === '__default__' ? '' : v)}>
+              <Select value={animation || '__default__'} onValueChange={v => setAnimation(v === '__default__' ? '' : (v ?? ''))}>
                 <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
                   <SelectValue />
                 </SelectTrigger>
@@ -177,7 +177,7 @@ export function AvatarConfigPanel({
               <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
                 Skin
               </label>
-              <Select value={skin || '__default__'} onValueChange={v => setSkin(v === '__default__' ? '' : v)}>
+              <Select value={skin || '__default__'} onValueChange={v => setSkin(v === '__default__' ? '' : (v ?? ''))}>
                 <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
                   <SelectValue />
                 </SelectTrigger>
@@ -196,7 +196,7 @@ export function AvatarConfigPanel({
             <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
               Background
             </label>
-            <Select value={bg} onValueChange={v => setBg(v)}>
+            <Select value={bg} onValueChange={v => setBg(v ?? '')}>
               <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
                 <SelectValue />
               </SelectTrigger>
