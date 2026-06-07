@@ -56,9 +56,20 @@ function ensureSpineScript(version: string): Promise<void> {
   const existing = document.getElementById(scriptId)
   if (existing) {
     // Script tag in DOM but not yet loaded — attach to its events.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((window as any).spine?.SpinePlayer) {
+      // Already loaded (load event fired before we attached listener)
+      spineScriptPromises[scriptId] = Promise.resolve()
+      return spineScriptPromises[scriptId]
+    }
     spineScriptPromises[scriptId] = new Promise<void>((resolve, reject) => {
-      existing.addEventListener('load', () => resolve(), { once: true })
-      existing.addEventListener('error', () => reject(new Error(`Failed to load Spine v${version}`)), { once: true })
+      const onLoad = () => resolve()
+      const onError = () => {
+        delete spineScriptPromises[scriptId] // clear so next attempt retries
+        reject(new Error(`Failed to load Spine v${version}`))
+      }
+      existing.addEventListener('load', onLoad, { once: true })
+      existing.addEventListener('error', onError, { once: true })
     })
     return spineScriptPromises[scriptId]
   }
@@ -68,7 +79,10 @@ function ensureSpineScript(version: string): Promise<void> {
     script.id = scriptId
     script.src = getScriptUrl(version)
     script.onload = () => resolve()
-    script.onerror = () => reject(new Error(`Failed to load Spine v${version}`))
+    script.onerror = () => {
+      delete spineScriptPromises[scriptId] // clear so next attempt retries
+      reject(new Error(`Failed to load Spine v${version}`))
+    }
     document.body.appendChild(script)
   })
   return spineScriptPromises[scriptId]
@@ -163,7 +177,10 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
                 padBottom: '0%',
               }
 
-          new SpinePlayerClass(containerRef.current, {
+          // Store the player reference immediately so cleanup can dispose it
+          // even if the component unmounts before success/error fires.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const player = new SpinePlayerClass(containerRef.current, {
             jsonUrl,
             atlasUrl,
             animation: animationName || undefined,
@@ -174,11 +191,14 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
             defaultMix: 0.2,
             viewport,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            success: (player: any) => {
-              if (cancelled) return
-              playerInstanceRef.current = player
+            success: (p: any) => {
+              if (cancelled) {
+                try { p?.dispose?.() } catch { /* ignore */ }
+                return
+              }
+              playerInstanceRef.current = p
               try {
-                const data = player?.skeleton?.data
+                const data = p?.skeleton?.data
                 if (data) {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const animations: string[] = (data.animations ?? []).map((a: any) => a.name).filter(Boolean)
@@ -194,6 +214,8 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
               if (!cancelled) onErrorRef.current?.()
             },
           })
+          // Fallback: store player in ref if success hasn't fired yet
+          if (!playerInstanceRef.current) playerInstanceRef.current = player
         } catch {
           if (!cancelled) onErrorRef.current?.()
         }
@@ -202,6 +224,15 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
       return () => {
         cancelled = true
         observer.disconnect()
+        // Reset so effect re-runs on prop changes can re-initialize
+        initializedRef.current = false
+        // Dispose the player to release WebGL context
+        try {
+          playerInstanceRef.current?.dispose?.()
+        } catch {
+          /* ignore disposal errors */
+        }
+        playerInstanceRef.current = null
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
