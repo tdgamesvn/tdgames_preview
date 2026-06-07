@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CharacterCardGrid } from '@/components/dashboard/character-card-grid'
-import { Comments } from '@/components/preview/comments'
+import { CommentsDrawer } from '@/components/portal/comments-drawer'
+import { RosterClient } from '@/components/portal/roster-client'
 import type { PrvProfile, PrvProject, PrvTask } from '@/lib/types/database'
 
 export default async function PortalProjectPage({ params }: { params: { pid: string } }) {
@@ -25,7 +25,6 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
     .eq('id', params.pid)
     .single()) as { data: PrvProject | null }
 
-  // Internal users can preview any project; clients restricted to own
   const isInternal = profile?.role === 'internal'
   if (!project || (!isInternal && project.client_id !== profile?.client_id)) notFound()
 
@@ -37,71 +36,50 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
     .order('created_at')) as { data: PrvTask[] | null }
 
   const taskList = tasks ?? []
-  const statusColor = project.status === 'active' ? '#4CAF50' : '#9D9C9D'
-
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Back link */}
-      <Link
-        href="/portal"
-        className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider transition-colors hover:text-white"
-        style={{ color: '#555' }}
-      >
-        ← All Projects
-      </Link>
-
-      {/* Project heading */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-lg font-black uppercase tracking-wider text-white">{project.name}</h1>
-        <span
-          className="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg"
-          style={{ background: `${statusColor}20`, color: statusColor }}
-        >
-          {project.status}
-        </span>
+    <div className="space-y-6">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <Link
+            href="/portal"
+            className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors hover:text-white"
+            style={{ color: '#444' }}
+          >
+            ← All Projects
+          </Link>
+          <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">
+            {project.name}
+          </h1>
+          <p className="text-[10px] uppercase tracking-widest" style={{ color: '#444' }}>
+            {taskList.length} character{taskList.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <CommentsDrawer projectId={project.id} />
       </div>
 
-      {project.description && (
-        <p className="text-sm" style={{ color: '#888' }}>{project.description}</p>
+      {/* Roster */}
+      {taskList.length === 0 ? (
+        <div
+          className="rounded-2xl flex flex-col items-center justify-center py-24 text-center"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.07)' }}
+        >
+          <p className="text-sm font-semibold" style={{ color: '#444' }}>No assets uploaded yet</p>
+          <p className="text-xs mt-1" style={{ color: '#333' }}>Check back soon — our team is working on it.</p>
+        </div>
+      ) : (
+        <RosterClient tasks={taskList}>
+          {(filtered) => (
+            <CharacterCardGrid
+              tasks={filtered}
+              project={project}
+              linkPrefix={`/portal/${params.pid}`}
+              readonly
+            />
+          )}
+        </RosterClient>
       )}
-
-      <Tabs defaultValue="characters">
-        <TabsList className="mb-6">
-          <TabsTrigger value="characters">Characters</TabsTrigger>
-          <TabsTrigger value="comments">Comments</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="characters">
-          <div className="space-y-6">
-            {/* Character card grid */}
-            {taskList.length > 0 && (
-              <CharacterCardGrid
-                tasks={taskList}
-                project={project}
-                linkPrefix={`/portal/${params.pid}`}
-                readonly
-              />
-            )}
-
-            {taskList.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-3xl mb-3">🎨</p>
-                <p className="text-sm text-neutral-medium">No assets uploaded yet</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="comments">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-4">
-              Project Comments
-            </p>
-            <Comments projectId={project.id} />
-          </div>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }

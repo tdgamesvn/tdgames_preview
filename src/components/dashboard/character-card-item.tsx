@@ -19,13 +19,14 @@ export interface SpineCardConfig {
 interface CharacterCardItemProps {
   task: PrvTask
   href: string
-  artUrl?: string          // presigned URL of first art asset (fallback #2)
-  spineConfig?: SpineCardConfig  // Spine avatar config (fallback #1 > artUrl)
+  artUrl?: string
+  spineConfig?: SpineCardConfig
 }
 
 export function CharacterCardItem({ task, href, artUrl, spineConfig }: CharacterCardItemProps) {
   const router = useRouter()
   const [spineError, setSpineError] = useState(false)
+  const [hovered, setHovered] = useState(false)
 
   const initial = task.name.charAt(0).toUpperCase()
   const showSpine = Boolean(spineConfig) && !spineError
@@ -35,33 +36,36 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
   return (
     <div
       onClick={() => router.push(href)}
-      className="cursor-pointer rounded-2xl overflow-hidden flex flex-col transition-all w-full"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="cursor-pointer rounded-2xl overflow-hidden flex flex-col w-full"
       style={{
+        aspectRatio: '2/3',
         background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        aspectRatio: '3/4',
-      }}
-      onMouseEnter={e => {
-        const el = e.currentTarget as HTMLElement
-        el.style.border = '1px solid rgba(255,149,0,0.45)'
-        el.style.background = 'rgba(255,149,0,0.04)'
-        el.style.boxShadow = '0 0 0 1px rgba(255,149,0,0.15)'
-      }}
-      onMouseLeave={e => {
-        const el = e.currentTarget as HTMLElement
-        el.style.border = '1px solid rgba(255,255,255,0.08)'
-        el.style.background = 'rgba(255,255,255,0.03)'
-        el.style.boxShadow = 'none'
+        border: hovered ? '1px solid rgba(255,149,0,0.45)' : '1px solid rgba(255,255,255,0.07)',
+        boxShadow: hovered ? '0 8px 40px rgba(255,149,0,0.18), 0 0 0 1px rgba(255,149,0,0.1)' : 'none',
+        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+        transition: 'border-color 250ms ease, box-shadow 250ms ease, transform 250ms ease',
       }}
     >
       {/* Preview area */}
-      <div
-        className="flex-1 relative overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.02)' }}
-      >
+      <div className="flex-1 relative overflow-hidden">
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            background: (task as any).avatar_bg && (task as any).avatar_bg !== '#00000000'
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ? `#${((task as any).avatar_bg as string).slice(1, 7)}`
+              : 'rgba(255,255,255,0.02)',
+          }}
+        />
         {showSpine && (
           <SpineAvatarPreview
             {...spineConfig!}
+            autoFit
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            backgroundColor={(task as any).avatar_bg ?? '#00000000'}
             onError={() => setSpineError(true)}
           />
         )}
@@ -70,14 +74,14 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
           <img
             src={artUrl}
             alt={task.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         )}
         {showPlaceholder && (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black"
-              style={{ background: 'rgba(255,149,0,0.12)', color: '#FF9500' }}
+              className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-black"
+              style={{ background: 'rgba(255,149,0,0.1)', color: 'rgba(255,149,0,0.4)' }}
             >
               {initial}
             </div>
@@ -85,12 +89,23 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
         )}
       </div>
 
-      {/* Name footer */}
+      {/* Name footer — reveals "View →" on hover */}
       <div
-        className="px-3 py-2.5 shrink-0"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+        className="px-3 shrink-0 flex items-center justify-between overflow-hidden"
+        style={{
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          height: hovered ? '44px' : '36px',
+          transition: 'height 250ms ease',
+          background: hovered ? 'rgba(255,149,0,0.04)' : 'transparent',
+        }}
       >
-        <p className="text-sm font-semibold text-white truncate">{task.name}</p>
+        <p className="text-xs font-semibold text-white truncate">{task.name}</p>
+        <span
+          className="text-[9px] font-black uppercase tracking-widest flex-shrink-0 ml-2 transition-opacity"
+          style={{ color: '#FF9500', opacity: hovered ? 1 : 0 }}
+        >
+          View →
+        </span>
       </div>
     </div>
   )

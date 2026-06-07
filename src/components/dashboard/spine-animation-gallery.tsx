@@ -79,52 +79,70 @@ export function SpineAnimationGallery({
 
   return (
     <div className="space-y-4">
-      {/* Controls: background always; skin only when the skeleton has real skins */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
-            Background
-          </label>
-          <select
-            value={bg}
-            onChange={e => setBg(e.target.value)}
-            className="px-3 py-1.5 rounded-lg text-sm text-white outline-none"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
-            {BACKGROUNDS.map(b => (
-              <option key={b.value} value={b.value}>{b.label}</option>
-            ))}
-          </select>
-        </div>
-        {realSkins.length > 0 && (
-          <div className="flex items-center gap-2">
-            <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
-              Skin
-            </label>
-            <select
-              value={skin}
-              onChange={e => setSkin(e.target.value)}
-              className="px-3 py-1.5 rounded-lg text-sm text-white outline-none"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+      {/* Controls: pill buttons for background + skin */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Background pills */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {BACKGROUNDS.map(b => (
+            <button
+              key={b.value}
+              onClick={() => setBg(b.value)}
+              className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+              style={{
+                background: bg === b.value ? 'rgba(255,149,0,0.15)' : 'rgba(255,255,255,0.04)',
+                border: bg === b.value ? '1px solid rgba(255,149,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                color: bg === b.value ? '#FF9500' : '#555',
+              }}
             >
-              <option value="">— Default —</option>
-              {realSkins.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+              {b.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Skin pills */}
+        {realSkins.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <button
+              onClick={() => setSkin('')}
+              className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+              style={{
+                background: skin === '' ? 'rgba(255,149,0,0.15)' : 'rgba(255,255,255,0.04)',
+                border: skin === '' ? '1px solid rgba(255,149,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                color: skin === '' ? '#FF9500' : '#555',
+              }}
+            >
+              Default
+            </button>
+            {realSkins.map(s => (
+              <button
+                key={s}
+                onClick={() => setSkin(s)}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                style={{
+                  background: skin === s ? 'rgba(255,149,0,0.15)' : 'rgba(255,255,255,0.04)',
+                  border: skin === s ? '1px solid rgba(255,149,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                  color: skin === s ? '#FF9500' : '#555',
+                }}
+              >
+                {s}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* One looping view per animation */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* One looping view per animation — portrait cells */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {animations.map(anim => (
           <div
             key={`${anim}-${skin}-${bg}`}
-            className="rounded-xl overflow-hidden flex flex-col"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            className="rounded-2xl overflow-hidden flex flex-col"
+            style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.07)',
+            }}
           >
-            <div className="aspect-square relative" style={{ background: cellBg }}>
+            <div className="aspect-[3/4] relative" style={{ background: cellBg }}>
               <SpineAvatarPreview
                 jsonUrl={jsonUrl}
                 atlasUrl={atlasUrl}
@@ -135,8 +153,17 @@ export function SpineAnimationGallery({
                 spineVersion={spineVersion}
               />
             </div>
-            <div className="px-2.5 py-2 shrink-0" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-xs font-medium text-white truncate" title={anim}>{anim}</p>
+            <div
+              className="px-3 py-2.5 shrink-0"
+              style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+            >
+              <p
+                className="text-[10px] font-black uppercase tracking-wider truncate"
+                style={{ color: '#888' }}
+                title={anim}
+              >
+                {anim}
+              </p>
             </div>
           </div>
         ))}

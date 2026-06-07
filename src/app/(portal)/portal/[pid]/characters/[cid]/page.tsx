@@ -2,8 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { getPresignedGetUrl } from '@/lib/r2'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ShowcaseHero } from '@/components/portal/showcase-hero'
+import { ArtFilmstrip } from '@/components/portal/art-filmstrip'
+import { SectionHeader } from '@/components/portal/section-header'
+import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
+import { Comments } from '@/components/preview/comments'
 import type { PrvAsset, PrvProfile, PrvProject, PrvTask } from '@/lib/types/database'
 
 export default async function PortalCharacterPage({
@@ -12,7 +16,6 @@ export default async function PortalCharacterPage({
   params: { pid: string; cid: string }
 }) {
   const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -51,157 +54,139 @@ export default async function PortalCharacterPage({
     .order('created_at')) as { data: PrvAsset[] | null }
 
   const allAssets = assets ?? []
+  const artAssets  = allAssets.filter(a => a.service_type === 'art')
+  const animAssets = allAssets.filter(a => a.service_type === 'animation')
+  const vfxAssets  = allAssets.filter(a => a.service_type === 'vfx')
 
-  // Generate presigned URLs for art thumbnails server-side
-  const artAssets = allAssets.filter(a => a.service_type === 'art')
-  const presignedEntries = await Promise.all(
-    artAssets.map(async a => {
-      try {
-        return [a.id, await getPresignedGetUrl(a.r2_key)] as const
-      } catch {
-        return [a.id, ''] as const
-      }
-    })
+  // Presign art for filmstrip
+  const artWithUrls = await Promise.all(
+    artAssets.map(async a => ({
+      id: a.id,
+      name: a.name,
+      presignedUrl: await getPresignedGetUrl(a.r2_key).catch(() => ''),
+    }))
   )
-  const presignedUrls = Object.fromEntries(presignedEntries)
+  const filmstripAssets = artWithUrls.filter(a => a.presignedUrl)
 
-  const assetsFor = (st: string) => allAssets.filter(a => a.service_type === st)
+  // Spine hero config (avatar asset + spine_version)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const taskAny = task as any
+  let spineHeroConfig:
+    | { jsonUrl: string; atlasUrl: string; animationName: string; spineVersion: string; spineAvatarBg: string }
+    | undefined
 
-  const artCount       = assetsFor('art').length
-  const animCount      = assetsFor('animation').length
-  const vfxCount       = assetsFor('vfx').length
+  if (task.avatar_asset_id && project.spine_version) {
+    const { data: spineAsset } = (await supabase
+      .from('Prv_assets')
+      .select('name')
+      .eq('id', task.avatar_asset_id)
+      .single()) as { data: Pick<PrvAsset, 'name'> | null }
+
+    if (spineAsset) {
+      const base = spineAsset.name.replace(/\.[^./]+$/, '')
+      spineHeroConfig = {
+        jsonUrl:       `/api/spine/${task.id}/${encodeURIComponent(spineAsset.name)}`,
+        atlasUrl:      `/api/spine/${task.id}/${encodeURIComponent(`${base}.atlas`)}`,
+        animationName: task.avatar_animation ?? '',
+        spineVersion:  project.spine_version,
+        spineAvatarBg: taskAny.avatar_bg ?? '#00000000',
+      }
+    }
+  }
+
+  // First art URL as hero fallback (when no Spine avatar)
+  const heroArtUrl = filmstripAssets[0]?.presignedUrl
+
+  // Animation gallery: find json + atlas pair in animAssets
+  const jsonAnim = animAssets.find(a => a.name.endsWith('.json'))
+  const atlasAnim = jsonAnim
+    ? animAssets.find(
+        a => a.name.endsWith('.atlas') && a.name.startsWith(jsonAnim.name.replace('.json', ''))
+      )
+    : undefined
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider flex-wrap">
-        <Link
-          href="/portal"
-          className="transition-colors hover:text-white"
-          style={{ color: '#444' }}
-        >
-          Projects
-        </Link>
-        <span style={{ color: '#333' }}>›</span>
-        <Link
-          href={`/portal/${params.pid}`}
-          className="transition-colors hover:text-white"
-          style={{ color: '#444' }}
-        >
-          {project.name}
-        </Link>
-        <span style={{ color: '#333' }}>›</span>
+      <nav
+        className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest mb-6 flex-wrap"
+        style={{ color: '#444' }}
+      >
+        <Link href="/portal" className="hover:text-white transition-colors">Projects</Link>
+        <span>›</span>
+        <Link href={`/portal/${params.pid}`} className="hover:text-white transition-colors">{project.name}</Link>
+        <span>›</span>
         <span className="text-white">{task.name}</span>
       </nav>
 
-      {/* Character heading */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-black uppercase tracking-wider text-white">{task.name}</h1>
-        <p className="text-xs uppercase tracking-widest" style={{ color: '#444' }}>
+      {/* Character name */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-white">
+          {task.name}
+        </h1>
+        <p className="text-[10px] uppercase tracking-widest mt-1" style={{ color: '#444' }}>
           {project.name}
         </p>
       </div>
 
-      {/* Asset count summary */}
-      <div className="flex items-center gap-4">
-        {artCount > 0 && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
-            🖼 {artCount} Art
-          </span>
-        )}
-        {animCount > 0 && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
-            🦴 {animCount} Animation
-          </span>
-        )}
-        {vfxCount > 0 && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg"
-            style={{ background: 'rgba(255,255,255,0.05)', color: '#888' }}>
-            🎬 {vfxCount} VFX
-          </span>
-        )}
-        {allAssets.length === 0 && (
-          <span className="text-xs" style={{ color: '#444' }}>No assets yet</span>
-        )}
-      </div>
+      {/* Zone A — full-bleed Spine/Art hero */}
+      <ShowcaseHero
+        characterName={task.name}
+        spineConfig={spineHeroConfig}
+        artUrl={!spineHeroConfig ? heroArtUrl : undefined}
+      />
 
-      {/* Tabs */}
-      <Tabs defaultValue={artCount > 0 ? 'art' : animCount > 0 ? 'animation' : 'vfx'}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="art">Art {artCount > 0 && <TabCount n={artCount} />}</TabsTrigger>
-          <TabsTrigger value="animation">Animation {animCount > 0 && <TabCount n={animCount} />}</TabsTrigger>
-          <TabsTrigger value="vfx">VFX {vfxCount > 0 && <TabCount n={vfxCount} />}</TabsTrigger>
-        </TabsList>
+      {/* Zones B–E — padded content */}
+      <div className="space-y-12 mt-10">
 
-        <TabsContent value="art">
-          {artCount === 0 ? (
-            <EmptyTab label="Art" />
-          ) : (
-            <AssetGridClient
-              assets={assetsFor('art')}
-              serviceType="art"
-              projectId={project.id}
-              presignedUrls={presignedUrls}
-              readonly
-            />
-          )}
-        </TabsContent>
+        {/* Zone B — Art filmstrip */}
+        {filmstripAssets.length > 0 && (
+          <section>
+            <SectionHeader label="Art" count={filmstripAssets.length} />
+            <ArtFilmstrip assets={filmstripAssets} />
+          </section>
+        )}
 
-        <TabsContent value="animation">
-          {animCount === 0 ? (
-            <EmptyTab label="Animation" />
-          ) : (
-            <AssetGridClient
-              assets={assetsFor('animation')}
-              serviceType="animation"
+        {/* Zone C — Animation gallery (all animations from Spine file) */}
+        {jsonAnim && atlasAnim && project.spine_version && (
+          <section>
+            <SectionHeader label="Animations" />
+            <SpineAnimationGallery
+              taskId={task.id}
+              jsonName={jsonAnim.name}
+              atlasName={atlasAnim.name}
               spineVersion={project.spine_version}
-              projectId={project.id}
-              readonly
             />
-          )}
-        </TabsContent>
+          </section>
+        )}
 
-        <TabsContent value="vfx">
-          {vfxCount === 0 ? (
-            <EmptyTab label="VFX" />
-          ) : (
+        {/* Zone D — VFX */}
+        {vfxAssets.length > 0 && (
+          <section>
+            <SectionHeader label="VFX" count={vfxAssets.length} />
             <AssetGridClient
-              assets={assetsFor('vfx')}
+              assets={vfxAssets}
               serviceType="vfx"
               projectId={project.id}
               readonly
             />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+          </section>
+        )}
 
-function TabCount({ n }: { n: number }) {
-  return (
-    <span
-      className="ml-1.5 text-[9px] font-black px-1.5 py-0.5 rounded-md"
-      style={{ background: 'rgba(255,149,0,0.15)', color: '#FF9500' }}
-    >
-      {n}
-    </span>
-  )
-}
+        {/* Zone E — Comments */}
+        <section>
+          <details open>
+            <summary
+              className="text-[10px] font-black uppercase tracking-widest cursor-pointer select-none mb-4"
+              style={{ color: '#444', listStyle: 'none' }}
+            >
+              ▾ &nbsp;Project Comments
+            </summary>
+            <Comments projectId={project.id} />
+          </details>
+        </section>
 
-function EmptyTab({ label }: { label: string }) {
-  const icons: Record<string, string> = { Art: '🖼', Animation: '🦴', VFX: '🎬' }
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-3">
-      <span className="text-4xl opacity-30">{icons[label]}</span>
-      <p className="text-sm font-semibold" style={{ color: '#444' }}>
-        No {label} assets yet
-      </p>
-      <p className="text-xs" style={{ color: '#333' }}>
-        Check back soon — our team is working on it.
-      </p>
+      </div>
     </div>
   )
 }

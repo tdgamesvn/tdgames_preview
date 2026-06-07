@@ -1,5 +1,11 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Avatar Config — background selector + autoFit + fix duplicate UI)
+- **SpineAvatarPreview:** thêm `autoFit` mode — skeleton tự fit bounds, rồi scale/offsetX/offsetY áp bằng CSS `transform` (không reload Spine khi kéo slider); thêm prop `backgroundColor` truyền thẳng vào canvas clear color.
+- **AvatarConfigPanel:** thêm dropdown chọn nền 5 preset (Transparent/Dark/Gray/White/Green), persist `avatar_bg`; xoá block Background bị duplicate (render 2 lần).
+- **DB:** tạo migration `20260607000000_task_avatar_skin_bg.sql` — add `avatar_skin` + `avatar_bg` columns vào `Prv_tasks` (đã apply lên Supabase). Trước đó 2 cột này có trong types + actions nhưng thiếu trong DB.
+- 46/46 tests pass, build sạch. Commit `c36e61b`, pushed → GitHub → auto-deploy OK.
+
 ## 2026-06-07 (Animation tab — gallery tự render MỌI animation)
 - Theo yêu cầu user: tab Animation tự render **mỗi animation 1 ô loop riêng + tên bên dưới**, bỏ dropdown chuyển animation thủ công, **chỉ giữ 1 dropdown Skin** áp cho tất cả.
 - Component mới `spine-animation-gallery.tsx`: fetch skeleton `.json` (proxy) → đọc `Object.keys(animations)` + skins (array 4.x hoặc object 3.x) → lưới SpineAvatarPreview, mỗi ô 1 animation (IntersectionObserver defer init nên không nặng). `AssetGridClient` nhánh animation dùng gallery thay SpinePlayer; vẫn giữ `<details>` Source files.

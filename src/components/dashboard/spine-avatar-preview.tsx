@@ -1,6 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
+
+export interface SpineAvatarPreviewHandle {
+  setAnimation: (name: string) => void
+}
 
 export interface SpineLoadedData {
   animations: string[]
@@ -32,151 +36,162 @@ function getScriptUrl(version: string) {
   return `${CDN_BASE}@${version}/dist/iife/spine-player.js`
 }
 
-export function SpineAvatarPreview({
-  jsonUrl,
-  atlasUrl,
-  animationName,
-  skinName,
-  scale = 1,
-  offsetX = 0,
-  offsetY = 0,
-  autoFit = false,
-  backgroundColor = '#00000000',
-  spineVersion,
-  onError,
-  onLoaded,
-}: SpineAvatarPreviewProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const initializedRef = useRef(false)
-  // Keep latest values without forcing the player to re-init on every change.
-  const onErrorRef = useRef(onError)
-  const onLoadedRef = useRef(onLoaded)
-  const scaleRef = useRef(scale)
-  const offsetXRef = useRef(offsetX)
-  const offsetYRef = useRef(offsetY)
-  onErrorRef.current = onError
-  onLoadedRef.current = onLoaded
-  scaleRef.current = scale
-  offsetXRef.current = offsetX
-  offsetYRef.current = offsetY
+export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvatarPreviewProps>(
+  function SpineAvatarPreview(
+    {
+      jsonUrl,
+      atlasUrl,
+      animationName,
+      skinName,
+      scale = 1,
+      offsetX = 0,
+      offsetY = 0,
+      autoFit = false,
+      backgroundColor = '#00000000',
+      spineVersion,
+      onError,
+      onLoaded,
+    }: SpineAvatarPreviewProps,
+    ref
+  ) {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const initializedRef = useRef(false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const playerInstanceRef = useRef<any>(null)
+    const onErrorRef = useRef(onError)
+    const onLoadedRef = useRef(onLoaded)
+    const scaleRef = useRef(scale)
+    const offsetXRef = useRef(offsetX)
+    const offsetYRef = useRef(offsetY)
+    onErrorRef.current = onError
+    onLoadedRef.current = onLoaded
+    scaleRef.current = scale
+    offsetXRef.current = offsetX
+    offsetYRef.current = offsetY
 
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    let cancelled = false
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !initializedRef.current) {
-          observer.disconnect()
-          init()
+    useImperativeHandle(ref, () => ({
+      setAnimation: (name: string) => {
+        try {
+          playerInstanceRef.current?.animationState?.setAnimation(0, name, true)
+        } catch {
+          /* non-fatal */
         }
       },
-      { threshold: 0.1 }
-    )
-    observer.observe(container)
+    }))
 
-    async function init() {
-      if (cancelled) return
-      try {
-        const scriptId = `spine-js-${spineVersion}`
-        if (!document.getElementById(scriptId)) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement('script')
-            script.id = scriptId
-            script.src = getScriptUrl(spineVersion)
-            script.onload = () => resolve()
-            script.onerror = () => reject(new Error(`Failed to load Spine v${spineVersion}`))
-            document.body.appendChild(script)
-          })
-        }
+    useEffect(() => {
+      const container = containerRef.current
+      if (!container) return
 
-        if (cancelled || !containerRef.current) return
+      let cancelled = false
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const SpinePlayerClass = (window as any).spine?.SpinePlayer
-        if (!SpinePlayerClass) {
-          onErrorRef.current?.()
-          return
-        }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !initializedRef.current) {
+            observer.disconnect()
+            init()
+          }
+        },
+        { threshold: 0.1 }
+      )
+      observer.observe(container)
 
-        initializedRef.current = true
+      async function init() {
+        if (cancelled) return
+        try {
+          const scriptId = `spine-js-${spineVersion}`
+          if (!document.getElementById(scriptId)) {
+            await new Promise<void>((resolve, reject) => {
+              const script = document.createElement('script')
+              script.id = scriptId
+              script.src = getScriptUrl(spineVersion)
+              script.onload = () => resolve()
+              script.onerror = () => reject(new Error(`Failed to load Spine v${spineVersion}`))
+              document.body.appendChild(script)
+            })
+          }
 
-        // autoFit → let the player compute each animation's bounding box and fit
-        // it (with padding); manual scale/offset are applied via CSS transform.
-        // Otherwise use a fixed 200-unit world window driven by scale/offset.
-        const viewport = autoFit
-          ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
-          : {
-              x: -100 * scaleRef.current + offsetXRef.current,
-              y: -100 * scaleRef.current + offsetYRef.current,
-              width: 200 * scaleRef.current,
-              height: 200 * scaleRef.current,
-              padLeft: '0%',
-              padRight: '0%',
-              padTop: '0%',
-              padBottom: '0%',
-            }
+          if (cancelled || !containerRef.current) return
 
-        new SpinePlayerClass(containerRef.current, {
-          jsonUrl,
-          atlasUrl,
-          animation: animationName || undefined,
-          skin: skinName || undefined,
-          showControls: false,
-          backgroundColor,
-          premultipliedAlpha: true,
-          defaultMix: 0.2,
-          viewport,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          success: (player: any) => {
-            if (cancelled) return
-            try {
-              const data = player?.skeleton?.data
-              if (data) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const animations: string[] = (data.animations ?? []).map((a: any) => a.name).filter(Boolean)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const skins: string[] = (data.skins ?? []).map((s: any) => s.name).filter(Boolean)
-                onLoadedRef.current?.({ animations, skins })
+          const SpinePlayerClass = (window as any).spine?.SpinePlayer
+          if (!SpinePlayerClass) {
+            onErrorRef.current?.()
+            return
+          }
+
+          initializedRef.current = true
+
+          const viewport = autoFit
+            ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
+            : {
+                x: -100 * scaleRef.current + offsetXRef.current,
+                y: -100 * scaleRef.current + offsetYRef.current,
+                width: 200 * scaleRef.current,
+                height: 200 * scaleRef.current,
+                padLeft: '0%',
+                padRight: '0%',
+                padTop: '0%',
+                padBottom: '0%',
               }
-            } catch {
-              /* non-fatal: dropdowns just stay empty */
-            }
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          error: () => {
-            if (!cancelled) onErrorRef.current?.()
-          },
-        })
-      } catch {
-        if (!cancelled) onErrorRef.current?.()
+
+          new SpinePlayerClass(containerRef.current, {
+            jsonUrl,
+            atlasUrl,
+            animation: animationName || undefined,
+            skin: skinName || undefined,
+            showControls: false,
+            backgroundColor,
+            premultipliedAlpha: true,
+            defaultMix: 0.2,
+            viewport,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            success: (player: any) => {
+              if (cancelled) return
+              playerInstanceRef.current = player
+              try {
+                const data = player?.skeleton?.data
+                if (data) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const animations: string[] = (data.animations ?? []).map((a: any) => a.name).filter(Boolean)
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const skins: string[] = (data.skins ?? []).map((s: any) => s.name).filter(Boolean)
+                  onLoadedRef.current?.({ animations, skins })
+                }
+              } catch {
+                /* non-fatal */
+              }
+            },
+            error: () => {
+              if (!cancelled) onErrorRef.current?.()
+            },
+          })
+        } catch {
+          if (!cancelled) onErrorRef.current?.()
+        }
       }
-    }
 
-    return () => {
-      cancelled = true
-      observer.disconnect()
-    }
-    // scale/offset are intentionally excluded: in autoFit they're CSS-only (no
-    // re-init); in fixed mode they're read once at init via refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
+      return () => {
+        cancelled = true
+        observer.disconnect()
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
 
-  // In autoFit mode, manual zoom/move is a CSS transform so dragging the
-  // sliders updates instantly without reloading the skeleton.
-  const transform =
-    autoFit && (scale !== 1 || offsetX !== 0 || offsetY !== 0)
-      ? `translate(${offsetX}%, ${offsetY}%) scale(${scale})`
-      : undefined
+    const transform =
+      autoFit && (scale !== 1 || offsetX !== 0 || offsetY !== 0)
+        ? `translate(${offsetX}%, ${offsetY}%) scale(${scale})`
+        : undefined
 
-  return (
-    <div
-      className="w-full h-full"
-      style={{ background: 'transparent', transform, transformOrigin: 'center' }}
-    >
-      <div ref={containerRef} className="w-full h-full" />
-    </div>
-  )
-}
+    return (
+      <div
+        className="w-full h-full"
+        style={{ background: 'transparent', transform, transformOrigin: 'center' }}
+      >
+        <div ref={containerRef} className="w-full h-full" />
+      </div>
+    )
+  }
+)
+
+SpineAvatarPreview.displayName = 'SpineAvatarPreview'
