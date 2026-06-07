@@ -88,10 +88,10 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 
 ### Trạng thái hiện tại
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
-- **Phase đang làm:** Maintenance/bugfix (P1-P5 đã xong)
+- **Phase đang làm:** P6 ✅ COMPLETE — tất cả phases P1–P6 đã xong
 - **Branch hiện tại:** `main`
-- **Vừa hoàn thành:** Fix crash click card nhân vật = ChunkLoadError do deploy non-atomic (404 chunk bị cache cứng). Sửa `deploy-remote.sh` → symlink swap atomic + `ErrorView` tự reload. Deploy + verify OK, đã purge CF. Commit `6883035`.
-- **Tiếp theo cần làm:** Theo dõi không còn ChunkLoadError sau các deploy tới.
+- **Vừa hoàn thành:** P6 Portal Cinematic Redesign — dark layout, cinematic project cards, scroll zones A–E cho character page, SpineAvatarPreview forwardRef, pill buttons gallery. 46/46 tests pass. Commit `a885037`, pushed → auto-deploy.
+- **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
 
 ### Context quan trọng
 <!-- Ghi lại những gì cần nhớ giữa các session: config đặc biệt, bug đã gặp, quyết định đột xuất -->

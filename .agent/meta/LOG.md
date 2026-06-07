@@ -1,5 +1,22 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (P6 — Portal Cinematic Redesign)
+- Triển khai hoàn tất P6: Portal Redesign — Character-First Showcase (commit `a885037`)
+- Portal layout: dark `#080808` + grain texture overlay (fixed, z-index 0)
+- `/portal`: cinematic 16:9 project cards (`PortalProjectCard`) với cover art + hover glow ring
+- `/portal/[pid]`: bỏ Tabs → roster grid thẳng + `CommentsDrawer` slide-in drawer góc phải
+  - `RosterClient`: search bar (chỉ hiện khi ≥ 8 nhân vật), render-props pattern
+- `/portal/[pid]/characters/[cid]`: bỏ Tabs → scroll zones A–E
+  - Zone A: `ShowcaseHero` full-bleed (Spine animation + chip switcher overlay, hoặc Art)
+  - Zone B: `ArtFilmstrip` scroll ngang + lightbox + download on hover
+  - Zone C: `SpineAnimationGallery` (tất cả animations inline)
+  - Zone D: VFX assets
+  - Zone E: Comments collapsible
+- `CharacterCardItem`: aspect 2:3 portrait, orange glow hover, "View →" fade-in
+- `SpineAvatarPreview`: thêm `forwardRef` + `useImperativeHandle` → `setAnimation()` imperative
+- `SpineAnimationGallery`: thay `<select>` dropdown → pill buttons; cells `aspect-[3/4]` portrait
+- 46/46 tests pass, build clean, pushed to main
+
 ## 2026-06-07 (Avatar Config — background selector + autoFit + fix duplicate UI)
 - **SpineAvatarPreview:** thêm `autoFit` mode — skeleton tự fit bounds, rồi scale/offsetX/offsetY áp bằng CSS `transform` (không reload Spine khi kéo slider); thêm prop `backgroundColor` truyền thẳng vào canvas clear color.
 - **AvatarConfigPanel:** thêm dropdown chọn nền 5 preset (Transparent/Dark/Gray/White/Green), persist `avatar_bg`; xoá block Background bị duplicate (render 2 lần).

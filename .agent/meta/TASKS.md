@@ -3,6 +3,17 @@
 ## Doing
 (none — all phases complete ✅)
 
+## Done (recent)
+- [x] P6: Portal Redesign — Character-First Showcase — COMPLETE (commit a885037)
+  - [x] Portal layout: dark #080808 + grain texture overlay
+  - [x] /portal: cinematic 16:9 project cards with cover art + hover glow
+  - [x] /portal/[pid]: roster grid + CommentsDrawer (no Tabs)
+  - [x] /portal/[pid]/characters/[cid]: scroll zones A–E (no Tabs)
+  - [x] CharacterCardItem: 2:3 portrait, orange glow hover, "View →" reveal
+  - [x] SpineAvatarPreview: forwardRef + imperative setAnimation()
+  - [x] SpineAnimationGallery: pill buttons + portrait 3:4 cells
+  - [x] 46/46 tests pass, build clean, pushed to main
+
 ## Done
 - [x] P8: Character Card Grid + Spine Avatar Preview — COMPLETE
   - [x] DB migration: avatar columns on Prv_tasks
