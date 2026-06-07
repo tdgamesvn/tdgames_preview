@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { PortalProjectCard } from '@/components/portal/portal-project-card'
 import type { PrvProfile, PrvProject, PrvAsset } from '@/lib/types/database'
 
@@ -63,7 +63,7 @@ export default async function PortalPage() {
       ])
       let coverUrl: string | undefined
       if (firstArt?.[0]?.r2_key) {
-        coverUrl = await getPresignedGetUrl(firstArt[0].r2_key).catch(() => undefined)
+        coverUrl = getPublicUrl(firstArt[0].r2_key)
       }
       return { project, characterCount: count ?? 0, coverUrl }
     })

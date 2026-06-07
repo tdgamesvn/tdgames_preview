@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { CharacterCardItem, type SpineCardConfig } from './character-card-item'
 import { RenameTaskButton } from './rename-task-button'
 import { DeleteTaskInline } from './delete-task-inline'
@@ -43,7 +43,7 @@ export async function CharacterCardGrid({ tasks, project, linkPrefix, readonly, 
       let artUrl: string | undefined
       const firstArt = artAssets?.[0]
       if (firstArt) {
-        artUrl = await getPresignedGetUrl(firstArt.r2_key).catch(() => undefined)
+        artUrl = getPublicUrl(firstArt.r2_key)
       }
 
       let spineConfig: SpineCardConfig | undefined

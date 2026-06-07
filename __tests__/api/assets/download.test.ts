@@ -4,10 +4,8 @@
 import { GET } from '@/app/api/assets/[id]/download/route'
 import { NextRequest } from 'next/server'
 
-const mockGetPresignedGetUrl = jest.fn().mockResolvedValue('https://r2.example.com/signed-download')
-
 jest.mock('@/lib/r2', () => ({
-  getPresignedGetUrl: (...args: unknown[]) => mockGetPresignedGetUrl(...args),
+  getPublicUrl: (key: string) => `https://prv.tdgamestudio.com/${key}`,
 }))
 
 jest.mock('@/lib/supabase/admin', () => ({
@@ -36,15 +34,11 @@ function makeReq(search = '') {
 }
 
 describe('GET /api/assets/[id]/download', () => {
-  beforeEach(() => {
-    mockGetPresignedGetUrl.mockResolvedValue('https://r2.example.com/signed-download')
-  })
-
-  it('returns presigned URL for authenticated user', async () => {
+  it('returns public URL for authenticated user', async () => {
     const res = await GET(makeReq(), { params: { id: 'a1' } })
     expect(res.status).toBe(200)
     const json = await res.json()
-    expect(json.url).toBe('https://r2.example.com/signed-download')
+    expect(json.url).toBe('https://prv.tdgamestudio.com/assets/a1/skeleton.json')
     expect(json.filename).toBe('hero')
   })
 
@@ -70,13 +64,11 @@ describe('GET /api/assets/[id]/download', () => {
     expect(res.status).toBe(404)
   })
 
-  it('returns atlas presigned URL when ?variant=atlas', async () => {
-    mockGetPresignedGetUrl.mockResolvedValue('https://r2.example.com/signed-atlas')
+  it('returns atlas public URL when ?variant=atlas', async () => {
     const res = await GET(makeReq('?variant=atlas'), { params: { id: 'a1' } })
     expect(res.status).toBe(200)
     const json = await res.json()
-    expect(json.url).toBe('https://r2.example.com/signed-atlas')
-    // Should have requested the .atlas key (replaced .json → .atlas)
-    expect(mockGetPresignedGetUrl).toHaveBeenCalledWith('assets/a1/skeleton.atlas')
+    // r2_key 'assets/a1/skeleton.json' → atlas 'assets/a1/skeleton.atlas'
+    expect(json.url).toBe('https://prv.tdgamestudio.com/assets/a1/skeleton.atlas')
   })
 })

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { PortalCharacterGrid, type CharacterCardData } from '@/components/portal/portal-character-grid'
 import { CommentsDrawer } from '@/components/portal/comments-drawer'
 import type { PrvAsset, PrvProfile, PrvProject, PrvTask } from '@/lib/types/database'
@@ -62,7 +62,7 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
 
       let artUrl: string | undefined
       if (artAssets?.[0]) {
-        artUrl = await getPresignedGetUrl(artAssets[0].r2_key).catch(() => undefined)
+        artUrl = getPublicUrl(artAssets[0].r2_key)
       }
 
       let spineConfig: SpineCardConfig | undefined

@@ -1,5 +1,12 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-07 (Bugfix — Spine card race condition + gallery error)
+- Điều tra systematic: 3 bugs được report (cards không hiện animation, "Animation bounds are invalid", "Something went wrong").
+- Bug A (Race condition): Khi 3 SpineAvatarPreview cards hiện đồng thời, card 1 append `<script>` vào DOM đồng bộ rồi await load. Card 2+3 thấy `getElementById` = true → bỏ await → `window.spine = undefined` → `onError()` → fallback art/letter. Fix: module-level `ensureSpineScript()` cache Promise dùng chung.
+- Bug B ("Animation bounds are invalid"): Bugs Bunny skeleton export thiếu valid bounds → `calculateAnimationViewport` throw khi `autoFit=true`. Gallery cells hiện raw error text của Spine. Fix: track `cellErrors` state trong `SpineAnimationGallery`, thay Spine canvas bằng "Preview unavailable" khi `onError` fires.
+- "Something went wrong": Không reproduce được qua Playwright — có thể transient server error.
+- 49/49 tests pass, pushed commit `0cad5f9`.
+
 ## 2026-06-07 (Production hotfix — Internal Server Error)
 - Lỗi: `Cannot find module 'next/dist/compiled/cookie'` → toàn bộ app 500.
 - Root cause: `npm ci` trên VPS bị partial extraction cho package `next` (OOM kill/timeout khi extract ~10k files). `node_modules/next/` chỉ có README + .d.ts stubs, thiếu `dist/compiled/` + `package.json`. PM2 đã restart 295 lần.

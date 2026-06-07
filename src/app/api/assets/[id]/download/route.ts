@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 
 export async function GET(
   request: NextRequest,
@@ -21,16 +21,16 @@ export async function GET(
 
   if (error || !asset) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  // ?variant=atlas → return presigned URL for the companion .atlas file
+  // ?variant=atlas → return public URL for the companion .atlas file
   const variant = request.nextUrl.searchParams.get('variant')
   if (variant === 'atlas') {
     // Derive atlas key: replace file extension with .atlas
     // e.g. assets/{id}/skeleton.json → assets/{id}/skeleton.atlas
     const atlasKey = asset.r2_key.replace(/\.[^./]+$/, '.atlas')
-    const url = await getPresignedGetUrl(atlasKey)
+    const url = getPublicUrl(atlasKey)
     return NextResponse.json({ url, filename: asset.name + '.atlas' })
   }
 
-  const url = await getPresignedGetUrl(asset.r2_key)
+  const url = getPublicUrl(asset.r2_key)
   return NextResponse.json({ url, filename: asset.name })
 }

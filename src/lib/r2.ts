@@ -24,6 +24,16 @@ export async function getPresignedPutUrl(key: string, contentType: string): Prom
   return getSignedUrl(client, command, { expiresIn: 3600 })
 }
 
+/**
+ * Returns the public R2 URL for a given key.
+ * Requires R2_PUBLIC_URL env var (e.g. https://prv.tdgamestudio.com).
+ * Replaces getPresignedGetUrl — no signing overhead, no 1-hour expiry.
+ */
+export function getPublicUrl(key: string): string {
+  return `${process.env.R2_PUBLIC_URL}/${key}`
+}
+
+/** @deprecated Use getPublicUrl instead — kept for Spine proxy internal use only. */
 export async function getPresignedGetUrl(key: string): Promise<string> {
   const client = getR2Client()
   const command = new GetObjectCommand({

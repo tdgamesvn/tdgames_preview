@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
 import type { PrvAsset, PrvProject, PrvTask } from '@/lib/types/database'
@@ -24,9 +24,7 @@ export default async function SharePage({ params }: Props) {
     admin.from('Prv_tasks').select('*').eq('project_id', project.id).order('sort_order').order('created_at') as Promise<{ data: PrvTask[] | null }>,
   ])
 
-  const allAssets: AssetWithUrl[] = await Promise.all(
-    (assets ?? []).map(async (a) => ({ ...a, presignedUrl: await getPresignedGetUrl(a.r2_key).catch(() => '') }))
-  )
+  const allAssets: AssetWithUrl[] = (assets ?? []).map((a) => ({ ...a, presignedUrl: getPublicUrl(a.r2_key) }))
   const taskList = tasks ?? []
 
   const assetsFor = (taskId: string | null, st: string) =>

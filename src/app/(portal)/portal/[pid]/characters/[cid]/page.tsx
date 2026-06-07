@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ShowcaseHero } from '@/components/portal/showcase-hero'
@@ -58,25 +58,21 @@ export default async function PortalCharacterPage({
   const animAssets = allAssets.filter(a => a.service_type === 'animation')
   const vfxAssets  = allAssets.filter(a => a.service_type === 'vfx')
 
-  // Presign art for filmstrip
-  const artWithUrls = await Promise.all(
-    artAssets.map(async a => ({
-      id: a.id,
-      name: a.name,
-      presignedUrl: await getPresignedGetUrl(a.r2_key).catch(() => ''),
-    }))
-  )
+  // Get public URLs for art filmstrip
+  const artWithUrls = artAssets.map(a => ({
+    id: a.id,
+    name: a.name,
+    presignedUrl: getPublicUrl(a.r2_key),
+  }))
   const filmstripAssets = artWithUrls.filter(a => a.presignedUrl)
 
-  // Presign VFX for inline auto-play grid
-  const vfxWithUrls = await Promise.all(
-    vfxAssets.map(async a => ({
-      id: a.id,
-      name: a.name,
-      fileType: a.file_type,
-      presignedUrl: await getPresignedGetUrl(a.r2_key).catch(() => ''),
-    }))
-  )
+  // Get public URLs for VFX inline auto-play grid
+  const vfxWithUrls = vfxAssets.map(a => ({
+    id: a.id,
+    name: a.name,
+    fileType: a.file_type,
+    presignedUrl: getPublicUrl(a.r2_key),
+  }))
   const vfxCards = vfxWithUrls.filter(a => a.presignedUrl)
 
   // Spine hero config (avatar asset + spine_version)

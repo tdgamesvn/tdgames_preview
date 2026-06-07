@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getPresignedGetUrl } from '@/lib/r2'
+import { getPublicUrl } from '@/lib/r2'
 import { AssetUpload } from '@/components/dashboard/asset-upload'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
 import type { PrvAsset, ServiceType } from '@/lib/types/database'
@@ -33,20 +33,10 @@ export async function AssetGrid({ projectId, serviceType, spineVersion, taskId }
 
   const assetList = assets ?? []
 
-  // Generate presigned GET URLs for art thumbnails (server-side only)
+  // Generate public URLs for art thumbnails (server-side only)
   let presignedUrls: Record<string, string> = {}
   if (serviceType === 'art' && assetList.length > 0) {
-    const entries = await Promise.all(
-      assetList.map(async (a) => {
-        try {
-          const url = await getPresignedGetUrl(a.r2_key)
-          return [a.id, url] as const
-        } catch {
-          return [a.id, ''] as const
-        }
-      })
-    )
-    presignedUrls = Object.fromEntries(entries)
+    presignedUrls = Object.fromEntries(assetList.map((a) => [a.id, getPublicUrl(a.r2_key)]))
   }
 
   return (
