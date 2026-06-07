@@ -49,7 +49,7 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
                 className="w-full h-auto block"
                 style={{
                   objectFit: 'contain',
-                  maxHeight: '480px',
+                  maxHeight: '1080px',
                   background: 'rgba(255,255,255,0.02)',
                 }}
               />
