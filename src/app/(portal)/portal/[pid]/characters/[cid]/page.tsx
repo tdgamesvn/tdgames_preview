@@ -6,7 +6,7 @@ import { ShowcaseHero } from '@/components/portal/showcase-hero'
 import { ArtFilmstrip } from '@/components/portal/art-filmstrip'
 import { SectionHeader } from '@/components/portal/section-header'
 import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
-import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
+import { VfxInlineGrid } from '@/components/portal/vfx-inline-grid'
 import { Comments } from '@/components/preview/comments'
 import type { PrvAsset, PrvProfile, PrvProject, PrvTask } from '@/lib/types/database'
 
@@ -67,6 +67,17 @@ export default async function PortalCharacterPage({
     }))
   )
   const filmstripAssets = artWithUrls.filter(a => a.presignedUrl)
+
+  // Presign VFX for inline auto-play grid
+  const vfxWithUrls = await Promise.all(
+    vfxAssets.map(async a => ({
+      id: a.id,
+      name: a.name,
+      fileType: a.file_type,
+      presignedUrl: await getPresignedGetUrl(a.r2_key).catch(() => ''),
+    }))
+  )
+  const vfxCards = vfxWithUrls.filter(a => a.presignedUrl)
 
   // Spine hero config (avatar asset + spine_version)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -160,16 +171,11 @@ export default async function PortalCharacterPage({
           </section>
         )}
 
-        {/* Zone D — VFX */}
-        {vfxAssets.length > 0 && (
+        {/* Zone D — VFX (inline auto-play, IntersectionObserver) */}
+        {vfxCards.length > 0 && (
           <section>
-            <SectionHeader label="VFX" count={vfxAssets.length} />
-            <AssetGridClient
-              assets={vfxAssets}
-              serviceType="vfx"
-              projectId={project.id}
-              readonly
-            />
+            <SectionHeader label="VFX" count={vfxCards.length} />
+            <VfxInlineGrid assets={vfxCards} />
           </section>
         )}
 
