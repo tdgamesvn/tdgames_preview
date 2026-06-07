@@ -11,19 +11,51 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // shadcn/ui CSS variable mappings — required so bg-popover, bg-muted,
+        // text-popover-foreground, focus:bg-accent, border-input, etc. generate CSS
+        popover: {
+          DEFAULT:    "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        card: {
+          DEFAULT:    "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        muted: {
+          DEFAULT:    "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT:    "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        secondary: {
+          DEFAULT:    "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        destructive: {
+          DEFAULT:    "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        border: "var(--border)",
+        input:  "var(--input)",
+        ring:   "var(--ring)",
+        primary: {
+          DEFAULT:    "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
         // TDGame Design Tokens
-        bg:        "#080808",
-        surface:   "#111111",
+        bg:          "#080808",
+        surface:     "#111111",
         "surface-2": "#181818",
-        primary:   "#FF9500",
-        "primary-dim": "rgba(255,149,0,0.12)",
-        "neutral-light":  "#F0F0F0",
-        "neutral-medium": "#888",
-        "neutral-dark":   "#333",
-        "status-success": "#22C55E",
-        "status-error":   "#EF4444",
-        "status-warning": "#F59E0B",
-        "status-info":    "#3B82F6",
+        "primary-dim":     "rgba(255,149,0,0.12)",
+        "neutral-light":   "#F0F0F0",
+        "neutral-medium":  "#888",
+        "neutral-dark":    "#333",
+        "status-success":  "#22C55E",
+        "status-error":    "#EF4444",
+        "status-warning":  "#F59E0B",
+        "status-info":     "#3B82F6",
       },
       fontFamily: {
         jakarta:    ["var(--font-jakarta)", "system-ui", "sans-serif"],
