@@ -6,10 +6,8 @@ import { ProjectSettingsForm } from '@/components/dashboard/project-settings-for
 import { Comments } from '@/components/preview/comments'
 import { TaskManager } from '@/components/dashboard/task-manager'
 import { CharacterCardGrid } from '@/components/dashboard/character-card-grid'
-import { deleteTask } from '@/lib/actions/tasks'
-import { RenameTaskButton } from '@/components/dashboard/rename-task-button'
 import type { PrvProject, PrvClient, PrvTask } from '@/lib/types/database'
-import { Trash2, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
 export default async function ProjectDetailPage({
   params,
@@ -99,27 +97,15 @@ export default async function ProjectDetailPage({
             {/* Add character button */}
             <TaskManager projectId={project.id} clientId={params.id} />
 
-            {/* Character card grid */}
+            {/* Character card grid — rename + delete actions grouped under each card */}
             {taskList.length > 0 && (
-              <div className="space-y-3">
-                {/* Cards */}
-                <CharacterCardGrid
-                  tasks={taskList}
-                  project={project}
-                  linkPrefix={linkPrefix}
-                  readonly={false}
-                />
-
-                {/* Rename + Delete row below cards */}
-                <div className="flex flex-wrap gap-3 items-start">
-                  {taskList.map(task => (
-                    <div key={task.id} className="flex items-center gap-1">
-                      <RenameTaskButton task={task} clientId={params.id} />
-                      <DeleteTaskButton task={task} clientId={params.id} />
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CharacterCardGrid
+                tasks={taskList}
+                project={project}
+                linkPrefix={linkPrefix}
+                readonly={false}
+                clientId={params.id}
+              />
             )}
 
             {taskList.length === 0 && (
@@ -151,24 +137,4 @@ export default async function ProjectDetailPage({
   )
 }
 
-/* ── Delete task button (Server Action) ───────────────────── */
-function DeleteTaskButton({ task, clientId }: { task: PrvTask; clientId: string }) {
-  return (
-    <form
-      action={async () => {
-        'use server'
-        await deleteTask({ task_id: task.id, project_id: task.project_id, client_id: clientId })
-      }}
-    >
-      <button
-        type="submit"
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold transition-all hover:bg-red-500/10"
-        style={{ color: '#555', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-        title={`Delete ${task.name}`}
-      >
-        <Trash2 size={10} />
-        {task.name}
-      </button>
-    </form>
-  )
-}
+/* DeleteTaskButton removed — now handled by DeleteTaskInline inside CharacterCardGrid */
