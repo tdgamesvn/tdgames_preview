@@ -66,7 +66,7 @@ export default async function PortalLayout({
         </div>
       </header>
 
-      <main className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-8 py-6 sm:py-10">
         {children}
       </main>
     </div>

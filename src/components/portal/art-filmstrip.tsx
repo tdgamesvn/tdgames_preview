@@ -20,8 +20,8 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
 
   return (
     <>
-      {/* Responsive grid — show full image at a glance, click to fullscreen */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Responsive grid — 1 image → full width; 2+ → 2 cols max so images stay large */}
+      <div className={`grid gap-4 ${assets.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
         {assets.map((asset, idx) => (
           <div key={asset.id} className="group relative">
             <button
