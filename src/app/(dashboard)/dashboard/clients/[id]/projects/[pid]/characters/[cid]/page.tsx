@@ -74,6 +74,8 @@ export default async function DashboardCharacterPage({
         clientId={params.id}
         spineVersion={project.spine_version}
         animationAssets={animationAssets}
+        cardBgType={project.card_bg_type}
+        cardBgValue={project.card_bg_value}
       />
 
       {/* Asset tabs */}

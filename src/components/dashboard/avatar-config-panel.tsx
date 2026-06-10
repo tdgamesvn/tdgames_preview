@@ -16,6 +16,9 @@ interface AvatarConfigPanelProps {
   spineVersion: string | null
   /** All animation assets belonging to this task (json + atlas + png) */
   animationAssets: PrvAsset[]
+  /** Project-level card background */
+  cardBgType?: 'color' | 'image'
+  cardBgValue?: string
 }
 
 function stripExt(name: string): string {
@@ -28,6 +31,8 @@ export function AvatarConfigPanel({
   clientId,
   spineVersion,
   animationAssets,
+  cardBgType,
+  cardBgValue,
 }: AvatarConfigPanelProps) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +48,6 @@ export function AvatarConfigPanel({
   // Background is now a project-level setting (card_bg_type/card_bg_value)
   // Spine canvas always uses transparent so the project bg shows through
   const bg = '#00000000'
-  const previewBg = 'rgba(255,255,255,0.02)'
 
   // Animations + skins discovered at runtime from the loaded skeleton.
   const [loaded, setLoaded] = useState<SpineLoadedData | null>(null)
@@ -252,8 +256,10 @@ export function AvatarConfigPanel({
             style={{
               width: '200px',
               height: '200px',
-              background: previewBg,
               border: '1px solid rgba(255,255,255,0.07)',
+              ...(cardBgType === 'image' && cardBgValue
+                ? { backgroundImage: `url(${cardBgValue})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: cardBgValue && cardBgValue !== '#00000000' ? `#${cardBgValue.slice(1, 7)}` : 'rgba(255,255,255,0.02)' }),
             }}
           >
             {previewUrls && spineVersion ? (
