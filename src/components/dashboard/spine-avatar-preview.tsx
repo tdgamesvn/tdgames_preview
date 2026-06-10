@@ -218,12 +218,8 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
               playerInstanceRef.current = p
               // Remove the global listener once successfully loaded
               window.removeEventListener('error', onWindowError)
-              // Force SpinePlayer container transparent so project bg shows
-              if (containerRef.current) {
-                containerRef.current.querySelectorAll('div').forEach(d => {
-                  (d as HTMLElement).style.background = 'transparent'
-                })
-              }
+              // SpinePlayer uses backgroundColor config for its own CSS bg —
+              // do NOT override it to transparent (that removes the bg color).
               try {
                 const data = p?.skeleton?.data
                 if (data) {
@@ -247,13 +243,8 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
           // Fallback: store player in ref if success hasn't fired yet
           if (!playerInstanceRef.current) playerInstanceRef.current = player
 
-          // Override SpinePlayer's default black CSS background on ALL child divs
-          // so the project-level bg color (via WebGL clear) shows correctly.
-          // SpinePlayer creates various wrapper divs with black bg — force them all transparent.
-          if (containerRef.current) {
-            const allDivs = containerRef.current.querySelectorAll('div')
-            allDivs.forEach(d => { (d as HTMLElement).style.background = 'transparent' })
-          }
+          // Note: SpinePlayer handles backgroundColor via its own CSS —
+          // we pass the project bg color directly and let it render natively.
         } catch (err) {
           if (!cancelled && !errorFired) {
             errorFired = true
