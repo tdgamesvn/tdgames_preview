@@ -28,6 +28,10 @@ export interface PrvProject {
   spine_version: string | null
   share_enabled: boolean
   share_token: string | null
+  /** Card background type: 'color' (solid hex) or 'image' (R2 public URL) */
+  card_bg_type: 'color' | 'image'
+  /** Hex color (e.g. '#3a3a3aff') or public image URL */
+  card_bg_value: string
   created_at: string
 }
 

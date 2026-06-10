@@ -122,6 +122,8 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
         <PortalCharacterGrid
           cards={cards}
           linkPrefix={`/portal/${params.pid}`}
+          cardBgType={project.card_bg_type}
+          cardBgValue={project.card_bg_value}
         />
       )}
     </div>

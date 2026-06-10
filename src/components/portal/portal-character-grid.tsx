@@ -14,9 +14,11 @@ export interface CharacterCardData {
 interface PortalCharacterGridProps {
   cards: CharacterCardData[]
   linkPrefix: string
+  cardBgType?: 'color' | 'image'
+  cardBgValue?: string
 }
 
-export function PortalCharacterGrid({ cards, linkPrefix }: PortalCharacterGridProps) {
+export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue }: PortalCharacterGridProps) {
   const [query, setQuery] = useState('')
   const showSearch = cards.length >= 8
 
@@ -63,6 +65,8 @@ export function PortalCharacterGrid({ cards, linkPrefix }: PortalCharacterGridPr
             href={`${linkPrefix}/characters/${task.id}`}
             artUrl={artUrl}
             spineConfig={spineConfig}
+            cardBgType={cardBgType}
+            cardBgValue={cardBgValue}
           />
         ))}
       </div>

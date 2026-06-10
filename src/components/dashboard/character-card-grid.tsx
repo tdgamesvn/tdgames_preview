@@ -77,6 +77,8 @@ export async function CharacterCardGrid({ tasks, project, linkPrefix, readonly, 
             href={`${linkPrefix}/characters/${task.id}`}
             artUrl={artUrl}
             spineConfig={spineConfig}
+            cardBgType={project.card_bg_type}
+            cardBgValue={project.card_bg_value}
           />
           {showActions && (
             <div className="flex gap-1">

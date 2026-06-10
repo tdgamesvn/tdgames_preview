@@ -21,9 +21,13 @@ interface CharacterCardItemProps {
   href: string
   artUrl?: string
   spineConfig?: SpineCardConfig
+  /** Project-level card background: 'color' or 'image' */
+  cardBgType?: 'color' | 'image'
+  /** Hex color or public image URL */
+  cardBgValue?: string
 }
 
-export function CharacterCardItem({ task, href, artUrl, spineConfig }: CharacterCardItemProps) {
+export function CharacterCardItem({ task, href, artUrl, spineConfig, cardBgType, cardBgValue }: CharacterCardItemProps) {
   const router = useRouter()
   const [spineError, setSpineError] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -53,11 +57,9 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig }: Character
         <div
           style={{
             position: 'absolute', inset: 0,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            background: (task as any).avatar_bg && (task as any).avatar_bg !== '#00000000'
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ? `#${((task as any).avatar_bg as string).slice(1, 7)}`
-              : 'rgba(255,255,255,0.02)',
+            ...(cardBgType === 'image' && cardBgValue
+              ? { backgroundImage: `url(${cardBgValue})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : { background: cardBgValue && cardBgValue !== '#00000000' ? `#${cardBgValue.slice(1, 7)}` : 'rgba(255,255,255,0.02)' }),
           }}
         />
         {showSpine && (

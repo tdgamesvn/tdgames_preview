@@ -26,9 +26,44 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const [spineVersion, setSpineVersion] = useState(project.spine_version ?? '')
   const [shareEnabled, setShareEnabled] = useState(project.share_enabled)
   const [status,       setStatus]       = useState<'active' | 'archived'>(project.status)
+  const [cardBgType,   setCardBgType]   = useState<'color' | 'image'>(project.card_bg_type ?? 'color')
+  const [cardBgValue,  setCardBgValue]  = useState(project.card_bg_value ?? '#3a3a3aff')
+  const [bgUploading,  setBgUploading]  = useState(false)
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  const COLOR_PRESETS = [
+    { label: 'Dark',        value: '#16161aff' },
+    { label: 'Gray',        value: '#3a3a3aff' },
+    { label: 'Charcoal',    value: '#2a2a2eff' },
+    { label: 'White',       value: '#ffffffff' },
+    { label: 'Green',       value: '#00b140ff' },
+    { label: 'Blue',        value: '#1e3a5fff' },
+    { label: 'Transparent', value: '#00000000' },
+  ]
+
+  async function handleBgImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setBgUploading(true)
+    const r2Key = `backgrounds/${project.id}/${Date.now()}-${file.name}`
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('project_id', project.id)
+    formData.append('service_type', 'art')
+    formData.append('r2_key', r2Key)
+    formData.append('name', file.name)
+    formData.append('file_type', file.name.split('.').pop()?.toLowerCase() ?? 'png')
+    formData.append('task_id', 'null')
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    setBgUploading(false)
+    if (res.ok) {
+      const publicUrl = `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? ''}/${r2Key}`
+      setCardBgType('image')
+      setCardBgValue(publicUrl)
+    }
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -40,6 +75,8 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       spine_version: spineVersion || null,
       share_enabled: shareEnabled,
       status,
+      card_bg_type: cardBgType,
+      card_bg_value: cardBgValue,
     })
     setSaving(false)
     if (result.error) { setErrorMsg(result.error); return }
@@ -112,6 +149,84 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
         </Select>
         <p className="text-xs" style={{ color: '#444' }}>
           Used by all Animation assets in this project
+        </p>
+      </div>
+
+      {/* ── Card Background ─────────────────────────── */}
+      <div className="space-y-3">
+        <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#666' }}>
+          Card Background
+        </label>
+        {/* Color presets */}
+        <div className="flex flex-wrap gap-2">
+          {COLOR_PRESETS.map(c => (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => { setCardBgType('color'); setCardBgValue(c.value) }}
+              className="w-8 h-8 rounded-lg transition-all"
+              title={c.label}
+              style={{
+                background: c.value === '#00000000'
+                  ? 'repeating-conic-gradient(#333 0% 25%, #555 0% 50%) 50% / 12px 12px'
+                  : `#${c.value.slice(1, 7)}`,
+                border: cardBgType === 'color' && cardBgValue === c.value
+                  ? '2px solid #FF9500'
+                  : '2px solid rgba(255,255,255,0.1)',
+                boxShadow: cardBgType === 'color' && cardBgValue === c.value
+                  ? '0 0 8px rgba(255,149,0,0.4)' : 'none',
+              }}
+            />
+          ))}
+        </div>
+        {/* Custom color input */}
+        {cardBgType === 'color' && (
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={`#${cardBgValue.slice(1, 7)}`}
+              onChange={e => setCardBgValue(e.target.value + 'ff')}
+              className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0"
+              style={{ background: 'transparent' }}
+            />
+            <span className="text-xs" style={{ color: '#555' }}>Custom color</span>
+          </div>
+        )}
+        {/* Image upload */}
+        <div className="flex items-center gap-3">
+          <label
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
+            style={{
+              background: cardBgType === 'image' ? 'rgba(255,149,0,0.15)' : 'rgba(255,255,255,0.04)',
+              border: cardBgType === 'image' ? '1px solid rgba(255,149,0,0.4)' : '1px solid rgba(255,255,255,0.1)',
+              color: cardBgType === 'image' ? '#FF9500' : '#888',
+            }}
+          >
+            {bgUploading ? 'Uploading…' : '📷 Upload Image'}
+            <input type="file" accept="image/*" className="hidden" onChange={handleBgImageUpload} disabled={bgUploading} />
+          </label>
+          {cardBgType === 'image' && (
+            <button
+              type="button"
+              onClick={() => { setCardBgType('color'); setCardBgValue('#3a3a3aff') }}
+              className="text-xs" style={{ color: '#EF4444' }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        {/* Preview */}
+        <div
+          className="w-full h-20 rounded-xl overflow-hidden"
+          style={{
+            border: '1px solid rgba(255,255,255,0.1)',
+            ...(cardBgType === 'image' && cardBgValue
+              ? { backgroundImage: `url(${cardBgValue})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+              : { background: cardBgValue && cardBgValue !== '#00000000' ? `#${cardBgValue.slice(1, 7)}` : 'rgba(255,255,255,0.02)' }),
+          }}
+        />
+        <p className="text-xs" style={{ color: '#444' }}>
+          Applied to all character cards in this project
         </p>
       </div>
 
