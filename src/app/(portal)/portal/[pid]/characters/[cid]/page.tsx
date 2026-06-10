@@ -96,7 +96,7 @@ export default async function PortalCharacterPage({
         atlasUrl:      `/api/spine/${task.id}/${encodeURIComponent(`${base}.atlas`)}`,
         animationName: task.avatar_animation ?? '',
         spineVersion:  project.spine_version,
-        spineAvatarBg: taskAny.avatar_bg ?? '#00000000',
+        spineAvatarBg: project.card_bg_type === 'color' && project.card_bg_value ? project.card_bg_value : '#00000000',
       }
     }
   }
@@ -163,6 +163,8 @@ export default async function PortalCharacterPage({
               jsonName={jsonAnim.name}
               atlasName={atlasAnim.name}
               spineVersion={project.spine_version}
+              cardBgType={project.card_bg_type}
+              cardBgValue={project.card_bg_value}
             />
           </section>
         )}
