@@ -30,8 +30,8 @@ export function SpineAnimationGallery({
   const [skin, setSkin] = useState<string>('')
   const [bg, setBg] = useState<string>('#00000000')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  // Track which animation cells failed to render (Spine "bounds are invalid" etc.)
-  const [cellErrors, setCellErrors] = useState<Record<string, boolean>>({})
+  // Track which animation cells failed to render, with optional error message.
+  const [cellErrors, setCellErrors] = useState<Record<string, string | true>>({})
 
   const BACKGROUNDS: { label: string; value: string }[] = [
     { label: 'Transparent', value: '#00000000' },
@@ -149,8 +149,13 @@ export function SpineAnimationGallery({
             >
               <div className="aspect-[3/4] relative" style={{ background: cellBg }}>
                 {hasError ? (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <p className="text-[10px]" style={{ color: '#444' }}>Preview unavailable</p>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-3">
+                    <p className="text-[10px] font-semibold" style={{ color: '#EF4444' }}>Preview error</p>
+                    {typeof hasError === 'string' && (
+                      <p className="text-[9px] text-center leading-tight break-words" style={{ color: '#666' }}>
+                        {hasError.length > 80 ? hasError.slice(0, 80) + '…' : hasError}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <SpineAvatarPreview
@@ -161,7 +166,7 @@ export function SpineAnimationGallery({
                     autoFit
                     backgroundColor={bg}
                     spineVersion={spineVersion}
-                    onError={() => setCellErrors(prev => ({ ...prev, [cellKey]: true }))}
+                    onError={(msg) => setCellErrors(prev => ({ ...prev, [cellKey]: msg || true }))}
                   />
                 )}
               </div>

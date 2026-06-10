@@ -25,7 +25,8 @@ interface SpineAvatarPreviewProps {
   /** Canvas clear color (hex, 8-digit allows alpha). Default transparent. */
   backgroundColor?: string
   spineVersion: string
-  onError?: () => void
+  /** Called when the Spine player fails. Optional message describes the error. */
+  onError?: (message?: string) => void
   /** Called once the skeleton is loaded, exposing its animations + skins. */
   onLoaded?: (data: SpineLoadedData) => void
 }
@@ -150,6 +151,24 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
 
       async function init() {
         if (cancelled) return
+
+        // Catch uncaught Spine runtime errors (e.g. "Region not found in atlas")
+        // that are thrown inside requestAnimationFrame and bypass both try/catch
+        // and the SpinePlayer's error callback.
+        let errorFired = false
+        function onWindowError(event: ErrorEvent) {
+          if (errorFired || cancelled) return
+          const msg = event.message || event.error?.message || ''
+          // Only catch errors originating from the Spine runtime script
+          const src = event.filename || ''
+          if (src.includes('spine-player') || msg.includes('Region not found') || msg.includes('spine')) {
+            errorFired = true
+            event.preventDefault() // suppress console noise
+            onErrorRef.current?.(msg)
+          }
+        }
+        window.addEventListener('error', onWindowError)
+
         try {
           await ensureSpineScript(spineVersion)
 
@@ -158,7 +177,7 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const SpinePlayerClass = (window as any).spine?.SpinePlayer
           if (!SpinePlayerClass) {
-            onErrorRef.current?.()
+            onErrorRef.current?.('Spine runtime failed to load')
             return
           }
 
@@ -197,6 +216,8 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
                 return
               }
               playerInstanceRef.current = p
+              // Remove the global listener once successfully loaded
+              window.removeEventListener('error', onWindowError)
               try {
                 const data = p?.skeleton?.data
                 if (data) {
@@ -210,15 +231,24 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
                 /* non-fatal */
               }
             },
-            error: () => {
-              if (!cancelled) onErrorRef.current?.()
+            error: (_p: unknown, msg: string) => {
+              if (!cancelled && !errorFired) {
+                errorFired = true
+                onErrorRef.current?.(msg || 'Spine player error')
+              }
             },
           })
           // Fallback: store player in ref if success hasn't fired yet
           if (!playerInstanceRef.current) playerInstanceRef.current = player
-        } catch {
-          if (!cancelled) onErrorRef.current?.()
+        } catch (err) {
+          if (!cancelled && !errorFired) {
+            errorFired = true
+            onErrorRef.current?.(err instanceof Error ? err.message : 'Spine init failed')
+          }
         }
+
+        // Safety: remove global listener after 10s if neither success nor error fired
+        setTimeout(() => window.removeEventListener('error', onWindowError), 10000)
       }
 
       return () => {
