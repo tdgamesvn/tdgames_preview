@@ -258,14 +258,12 @@ export function AvatarConfigPanel({
           >
             {previewUrls && spineVersion ? (
               <SpineAvatarPreview
-                key={`${assetId}-${animation}-${skin}-${bg}`}
+                key={`${assetId}-${animation}-${skin}`}
                 jsonUrl={previewUrls.jsonUrl}
                 atlasUrl={previewUrls.atlasUrl}
                 animationName={animation}
                 skinName={skin}
-                scale={scale}
-                offsetX={offsetX}
-                offsetY={offsetY}
+                autoFit
                 backgroundColor={bg}
                 spineVersion={spineVersion}
                 onLoaded={setLoaded}
