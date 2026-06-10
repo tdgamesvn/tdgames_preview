@@ -66,8 +66,7 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig, cardBgType,
           <SpineAvatarPreview
             {...spineConfig!}
             autoFit
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            backgroundColor={(task as any).avatar_bg ?? '#00000000'}
+            backgroundColor="#00000000"
             onError={() => setSpineError(true)}
           />
         )}
