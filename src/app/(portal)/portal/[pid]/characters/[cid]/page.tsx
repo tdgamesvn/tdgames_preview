@@ -76,8 +76,6 @@ export default async function PortalCharacterPage({
   const vfxCards = vfxWithUrls.filter(a => a.presignedUrl)
 
   // Spine hero config (avatar asset + spine_version)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const taskAny = task as any
   let spineHeroConfig:
     | { jsonUrl: string; atlasUrl: string; animationName: string; spineVersion: string; spineAvatarBg: string }
     | undefined
