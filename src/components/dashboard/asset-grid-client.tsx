@@ -28,6 +28,8 @@ interface AssetGridClientProps {
   projectId: string
   readonly?: boolean
   presignedUrls?: Record<string, string>  // art thumbnails, pre-generated server-side
+  cardBgType?: 'color' | 'image'
+  cardBgValue?: string
 }
 
 const TYPE_ICON: Record<ServiceType, string> = {
@@ -43,6 +45,8 @@ export function AssetGridClient({
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
   readonly = false,
   presignedUrls = {},
+  cardBgType,
+  cardBgValue,
 }: AssetGridClientProps) {
   const router = useRouter()
   const [viewingAsset, setViewingAsset] = useState<PrvAsset | null>(null)
@@ -102,6 +106,8 @@ export function AssetGridClient({
                   jsonName={json.name}
                   atlasName={`${base}.atlas`}
                   spineVersion={spineVersion}
+                  cardBgType={cardBgType}
+                  cardBgValue={cardBgValue}
                 />
                 {/* Source files — always expanded, Delete All in header row */}
                 <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>

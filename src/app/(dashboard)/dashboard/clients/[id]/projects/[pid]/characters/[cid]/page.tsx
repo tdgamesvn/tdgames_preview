@@ -100,6 +100,8 @@ export default async function DashboardCharacterPage({
             serviceType="animation"
             spineVersion={project.spine_version}
             taskId={task.id}
+            cardBgType={project.card_bg_type}
+            cardBgValue={project.card_bg_value}
           />
         </TabsContent>
 

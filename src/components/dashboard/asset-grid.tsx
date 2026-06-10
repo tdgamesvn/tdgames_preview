@@ -9,9 +9,11 @@ interface AssetGridProps {
   serviceType: ServiceType
   spineVersion?: string | null
   taskId?: string | null  // undefined = all, string = specific task, null = ungrouped
+  cardBgType?: 'color' | 'image'
+  cardBgValue?: string
 }
 
-export async function AssetGrid({ projectId, serviceType, spineVersion, taskId }: AssetGridProps) {
+export async function AssetGrid({ projectId, serviceType, spineVersion, taskId, cardBgType, cardBgValue }: AssetGridProps) {
   const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   let query = supabase
     .from('Prv_assets')
@@ -48,6 +50,8 @@ export async function AssetGrid({ projectId, serviceType, spineVersion, taskId }
         spineVersion={spineVersion}
         projectId={projectId}
         presignedUrls={presignedUrls}
+        cardBgType={cardBgType}
+        cardBgValue={cardBgValue}
       />
     </div>
   )

@@ -270,7 +270,7 @@ export function AvatarConfigPanel({
                 animationName={animation}
                 skinName={skin}
                 autoFit
-                backgroundColor={bg}
+                backgroundColor={cardBgType === 'color' && cardBgValue ? cardBgValue : bg}
                 spineVersion={spineVersion}
                 onLoaded={setLoaded}
               />

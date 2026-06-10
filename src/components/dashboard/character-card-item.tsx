@@ -66,7 +66,7 @@ export function CharacterCardItem({ task, href, artUrl, spineConfig, cardBgType,
           <SpineAvatarPreview
             {...spineConfig!}
             autoFit
-            backgroundColor="#00000000"
+            backgroundColor={cardBgType === 'color' && cardBgValue ? cardBgValue : '#00000000'}
             onError={() => setSpineError(true)}
           />
         )}

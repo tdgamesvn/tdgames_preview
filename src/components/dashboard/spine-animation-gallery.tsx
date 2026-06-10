@@ -8,6 +8,9 @@ interface SpineAnimationGalleryProps {
   jsonName: string
   atlasName: string
   spineVersion: string
+  /** Project-level card background */
+  cardBgType?: 'color' | 'image'
+  cardBgValue?: string
 }
 
 /**
@@ -21,6 +24,8 @@ export function SpineAnimationGallery({
   jsonName,
   atlasName,
   spineVersion,
+  cardBgType,
+  cardBgValue,
 }: SpineAnimationGalleryProps) {
   const jsonUrl = `/api/spine/${taskId}/${encodeURIComponent(jsonName)}`
   const atlasUrl = `/api/spine/${taskId}/${encodeURIComponent(atlasName)}`
@@ -32,9 +37,11 @@ export function SpineAnimationGallery({
   // Track which animation cells failed to render, with optional error message.
   const [cellErrors, setCellErrors] = useState<Record<string, string | true>>({})
 
-  // Background is now project-level; Spine canvas always transparent
-  const bg = '#00000000'
-  const cellBg = 'rgba(255,255,255,0.02)'
+  // Background from project-level setting
+  const bg = cardBgType === 'color' && cardBgValue ? cardBgValue : '#00000000'
+  const cellBg = cardBgType === 'color' && cardBgValue && cardBgValue !== '#00000000'
+    ? `#${cardBgValue.slice(1, 7)}`
+    : 'rgba(255,255,255,0.02)'
 
   useEffect(() => {
     let cancelled = false
