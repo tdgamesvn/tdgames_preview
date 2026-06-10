@@ -40,16 +40,10 @@ export function AvatarConfigPanel({
   const [scale, setScale]         = useState<number>(task.avatar_scale ?? 1)
   const [offsetX, setOffsetX]     = useState<number>(task.avatar_offset_x ?? 0)
   const [offsetY, setOffsetY]     = useState<number>(task.avatar_offset_y ?? 0)
-  const [bg, setBg]               = useState<string>(task.avatar_bg ?? '#00000000')
-
-  const BACKGROUNDS: { label: string; value: string }[] = [
-    { label: 'Transparent', value: '#00000000' },
-    { label: 'Dark', value: '#16161aff' },
-    { label: 'Gray', value: '#3a3a3aff' },
-    { label: 'White', value: '#ffffffff' },
-    { label: 'Green', value: '#00b140ff' },
-  ]
-  const previewBg = bg === '#00000000' ? 'rgba(255,255,255,0.02)' : `#${bg.slice(1, 7)}`
+  // Background is now a project-level setting (card_bg_type/card_bg_value)
+  // Spine canvas always uses transparent so the project bg shows through
+  const bg = '#00000000'
+  const previewBg = 'rgba(255,255,255,0.02)'
 
   // Animations + skins discovered at runtime from the loaded skeleton.
   const [loaded, setLoaded] = useState<SpineLoadedData | null>(null)
@@ -92,7 +86,7 @@ export function AvatarConfigPanel({
         avatar_asset_id: assetId || null,
         avatar_animation: animation || null,
         avatar_skin: skin || null,
-        avatar_bg: bg || null,
+        avatar_bg: null,
         avatar_scale: scale,
         avatar_offset_x: offsetX,
         avatar_offset_y: offsetY,
@@ -190,23 +184,6 @@ export function AvatarConfigPanel({
               </Select>
             </div>
           )}
-
-          {/* Background */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
-              Background
-            </label>
-            <Select value={bg} onValueChange={v => setBg(v ?? '')}>
-              <SelectTrigger className="w-full h-9 text-sm" style={triggerStyle}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent style={contentStyle}>
-                {BACKGROUNDS.map(b => (
-                  <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Scale */}
           <div className="space-y-1.5">
