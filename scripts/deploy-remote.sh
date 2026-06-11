@@ -15,7 +15,43 @@ APP_DIR="/opt/tdgames-preview"
 APP_NAME="tdgames-preview"
 RELEASES_DIR="$APP_DIR/releases"
 KEEP_RELEASES=3
+DISCORD_WEBHOOK="https://discordapp.com/api/webhooks/1514298028494688503/2l-h_ykWzVxPHRLtO8r2A240_X1t2KnXY6QHtgRCzdRvizLC-fF_FgSc8Gi-laG6wK3W"
 cd "$APP_DIR"
+
+# ── Discord notification helper ──────────────────────────────────────────────
+notify_discord() {
+  local color="$1" title="$2" msg="$3"
+  local commit_sha
+  commit_sha="$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
+  local commit_msg
+  commit_msg="$(git log -1 --pretty=%s 2>/dev/null || echo '')"
+  local payload
+  payload=$(cat <<ENDJSON
+{
+  "embeds": [{
+    "title": "$title",
+    "description": "$msg",
+    "color": $color,
+    "fields": [
+      {"name": "Commit", "value": "\`$commit_sha\` $commit_msg", "inline": false},
+      {"name": "Time", "value": "$(date '+%Y-%m-%d %H:%M:%S %Z')", "inline": true}
+    ],
+    "footer": {"text": "tdgames-preview deploy"}
+  }]
+}
+ENDJSON
+)
+  curl -s -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK" >/dev/null 2>&1 || true
+}
+
+# ── Trap: notify on failure ──────────────────────────────────────────────────
+on_failure() {
+  local exit_code=$?
+  echo "❌ Deploy FAILED (exit code $exit_code)"
+  notify_discord 16711680 "❌ Deploy FAILED" "Build or deploy failed with exit code $exit_code. Production is still running the previous build."
+  exit $exit_code
+}
+trap on_failure ERR
 
 echo "💾 Backing up .env.production..."
 cp .env.production /tmp/tdgames-preview.env.bak 2>/dev/null || true
@@ -85,3 +121,6 @@ cp /tmp/tdgames-preview.env.bak .env.production 2>/dev/null || true
 
 echo "✅ Deploy finished at $(date)"
 pm2 show "$APP_NAME" | grep -E 'status|uptime|memory|pid' || true
+
+# ── Notify success ───────────────────────────────────────────────────────────
+notify_discord 65280 "✅ Deploy Successful" "preview.tdgamestudio.com updated and running."

@@ -90,7 +90,17 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
 - **Phase đang làm:** Bugfix + incremental features (tất cả P1–P6 đã xong)
 - **Branch hiện tại:** `main`
-- **Vừa hoàn thành:** Production hotfix — `Cannot find module 'next/dist/compiled/cookie'` do `npm ci` partial extraction. Fix: `rm -rf node_modules && npm ci` + `pm2 restart`. Deploy script giờ có verify + retry step. Commit `0184f88`.
+- **Vừa hoàn thành (commit `cdf6b7d`):** 14 commits kể từ checkpoint `0184f88`:
+  - Fix Spine race condition + gallery error (0cad5f9)
+  - Spine player stability — dispose/unmount/retry (d10518f)
+  - Fix selectStyle ReferenceError crash dashboard character page (f03a324)
+  - Fix TS2345 errors avatar-config-panel (5c94df1)
+  - feat: Folder drag-and-drop upload cho animation (4564ca8)
+  - feat: Larger source file chips + Delete All button (5b9ae18)
+  - Fix source files section luôn visible (76e0985)
+  - feat: Switch presigned S3 URLs → public R2 URLs via R2_PUBLIC_URL (5664611)
+  - chore: R2_PUBLIC_URL = prv.tdgamestudio.com (3d52f75)
+  - Fix system-file filter + skip resize cho animation type (7dab57d, cdf6b7d)
 - **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
 
 ### Context quan trọng
