@@ -54,8 +54,9 @@ export async function GET(
       headers: {
         'Content-Type': contentTypeFor(asset.name, obj.contentType),
         ...(obj.contentLength ? { 'Content-Length': String(obj.contentLength) } : {}),
-        // Short private cache; never let a transient error get cached long.
-        'Cache-Control': 'private, max-age=300',
+        // No caching: files may be replaced (delete + re-upload same name).
+        // A stale cached JSON/atlas/PNG causes Spine region-not-found errors.
+        'Cache-Control': 'no-store',
       },
     })
   } catch {
