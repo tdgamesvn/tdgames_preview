@@ -23,7 +23,7 @@ function contentTypeFor(name: string, fallback?: string): string {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { taskId: string; name: string } }
 ) {
   // Any authenticated user (internal or client) may stream Spine assets.
@@ -45,6 +45,17 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
+  // ETag = first 24 chars of the r2_key (unique per upload, changes when file is replaced).
+  // This lets the browser cache the file body indefinitely while still detecting
+  // replacements: a re-upload generates a new r2_key → new ETag → cache bust.
+  const etag = `"${asset.r2_key.slice(0, 24)}"`
+  if (request.headers.get('if-none-match') === etag) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: { ETag: etag, 'Cache-Control': 'private, no-cache' },
+    })
+  }
+
   try {
     const obj = await getR2Object(asset.r2_key)
     if (!obj.body) return NextResponse.json({ error: 'Empty object' }, { status: 404 })
@@ -54,9 +65,11 @@ export async function GET(
       headers: {
         'Content-Type': contentTypeFor(asset.name, obj.contentType),
         ...(obj.contentLength ? { 'Content-Length': String(obj.contentLength) } : {}),
-        // No caching: files may be replaced (delete + re-upload same name).
-        // A stale cached JSON/atlas/PNG causes Spine region-not-found errors.
-        'Cache-Control': 'no-store',
+        // no-cache: browser must revalidate on every use, but can serve from
+        // cache if ETag matches (304 → no body re-download).
+        // When a file is replaced the r2_key changes → new ETag → full re-fetch.
+        'Cache-Control': 'private, no-cache',
+        ETag: etag,
       },
     })
   } catch {
