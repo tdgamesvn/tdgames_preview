@@ -90,17 +90,10 @@ P2 (Internal Dashboard), P3 (Asset Preview), P4 (Client Portal) — check `.agen
 <!-- Claude: cập nhật sau mỗi session với format bên dưới -->
 - **Phase đang làm:** Bugfix + incremental features (tất cả P1–P6 đã xong)
 - **Branch hiện tại:** `main`
-- **Vừa hoàn thành (commit `cdf6b7d`):** 14 commits kể từ checkpoint `0184f88`:
-  - Fix Spine race condition + gallery error (0cad5f9)
-  - Spine player stability — dispose/unmount/retry (d10518f)
-  - Fix selectStyle ReferenceError crash dashboard character page (f03a324)
-  - Fix TS2345 errors avatar-config-panel (5c94df1)
-  - feat: Folder drag-and-drop upload cho animation (4564ca8)
-  - feat: Larger source file chips + Delete All button (5b9ae18)
-  - Fix source files section luôn visible (76e0985)
-  - feat: Switch presigned S3 URLs → public R2 URLs via R2_PUBLIC_URL (5664611)
-  - chore: R2_PUBLIC_URL = prv.tdgamestudio.com (3d52f75)
-  - Fix system-file filter + skip resize cho animation type (7dab57d, cdf6b7d)
+- **Vừa hoàn thành (commit `08ddf18`):**
+  - chore: Discord deploy notifications — `scripts/deploy-remote.sh` gửi alert khi deploy fail/success
+  - chore: pre-push lint hook — `npm run lint` chạy trước mỗi push, abort nếu ESLint error
+  - `scripts/install-hooks.sh` — script để team member cài hook sau khi clone
 - **Tiếp theo cần làm:** Monitor production, bugfix nếu phát sinh.
 
 ### Context quan trọng
@@ -116,3 +109,47 @@ Khi user bảo "lưu context" hoặc kết thúc session dài, chạy:
 # Cập nhật phần "Trạng thái hiện tại" trong CLAUDE.md với progress thực tế
 # Thêm vào "Context quan trọng" bất kỳ điều gì cần nhớ qua session mới
 ```
+
+<!-- gitnexus:start -->
+# GitNexus — Code Intelligence
+
+This project is indexed by GitNexus as **tdgames_preview** (731 symbols, 1457 relationships, 48 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
+
+## Always Do
+
+- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
+- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
+- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
+- When exploring unfamiliar code, use `query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
+- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.
+
+## Never Do
+
+- NEVER edit a function, class, or method without first running `impact` on it.
+- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
+- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
+- NEVER commit changes without running `detect_changes()` to check affected scope.
+
+## Resources
+
+| Resource | Use for |
+|----------|---------|
+| `gitnexus://repo/tdgames_preview/context` | Codebase overview, check index freshness |
+| `gitnexus://repo/tdgames_preview/clusters` | All functional areas |
+| `gitnexus://repo/tdgames_preview/processes` | All execution flows |
+| `gitnexus://repo/tdgames_preview/process/{name}` | Step-by-step execution trace |
+
+## CLI
+
+| Task | Read this skill file |
+|------|---------------------|
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+
+<!-- gitnexus:end -->

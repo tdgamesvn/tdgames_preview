@@ -32,6 +32,10 @@ export interface PrvProject {
   card_bg_type: 'color' | 'image'
   /** Hex color (e.g. '#3a3a3aff') or public image URL */
   card_bg_value: string
+  /** Allow clients to download assets (default true) */
+  allow_download: boolean
+  /** Allow clients to post / view comments (default true) */
+  allow_comments: boolean
   created_at: string
 }
 

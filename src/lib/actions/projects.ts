@@ -30,7 +30,7 @@ export async function createProject(input: {
 
 export async function updateProject(
   id: string,
-  input: Partial<Pick<PrvProject, 'name' | 'description' | 'status' | 'spine_version' | 'share_enabled' | 'card_bg_type' | 'card_bg_value'>>
+  input: Partial<Pick<PrvProject, 'name' | 'description' | 'status' | 'spine_version' | 'share_enabled' | 'card_bg_type' | 'card_bg_value' | 'allow_download' | 'allow_comments'>>
 ): Promise<ActionResult<PrvProject>> {
   const supabase = (await createClient()) as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase

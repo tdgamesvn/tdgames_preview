@@ -6,9 +6,10 @@ import { ImageLightbox, type LightboxAsset } from '@/components/preview/image-li
 
 interface ArtFilmstripProps {
   assets: LightboxAsset[]
+  allowDownload?: boolean
 }
 
-export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
+export function ArtFilmstrip({ assets, allowDownload = true }: ArtFilmstripProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   async function handleDownload(assetId: string) {
@@ -65,14 +66,16 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
               >
                 <Maximize2 size={12} style={{ color: '#ccc' }} />
               </button>
-              <button
-                onClick={() => handleDownload(asset.id)}
-                aria-label="Download"
-                className="p-1.5 rounded-lg"
-                style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
-              >
-                <Download size={12} style={{ color: '#ccc' }} />
-              </button>
+              {allowDownload && (
+                <button
+                  onClick={() => handleDownload(asset.id)}
+                  aria-label="Download"
+                  className="p-1.5 rounded-lg"
+                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+                >
+                  <Download size={12} style={{ color: '#ccc' }} />
+                </button>
+              )}
             </div>
 
             {/* File name */}
@@ -93,7 +96,7 @@ export function ArtFilmstrip({ assets }: ArtFilmstripProps) {
           currentIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onNavigate={setLightboxIndex}
-          onDownload={handleDownload}
+          onDownload={allowDownload ? handleDownload : undefined}
         />
       )}
     </>

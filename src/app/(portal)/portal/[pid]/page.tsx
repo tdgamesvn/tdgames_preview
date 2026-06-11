@@ -104,7 +104,7 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
             {taskList.length} character{taskList.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <CommentsDrawer projectId={project.id} />
+        {(project.allow_comments ?? true) && <CommentsDrawer projectId={project.id} />}
       </div>
 
       {/* Roster */}

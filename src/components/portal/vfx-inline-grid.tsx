@@ -21,7 +21,7 @@ async function downloadVfx(assetId: string, name: string) {
 }
 
 // ── Video card with IntersectionObserver play/pause ──────────────────────────
-function VideoCard({ asset }: { asset: VfxCardData }) {
+function VideoCard({ asset, allowDownload }: { asset: VfxCardData; allowDownload: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -53,16 +53,18 @@ function VideoCard({ asset }: { asset: VfxCardData }) {
         className="w-full h-auto block"
         style={{ maxHeight: '480px', objectFit: 'contain' }}
       />
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => downloadVfx(asset.id, asset.name)}
-          aria-label="Download"
-          className="p-1.5 rounded-lg"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
-        >
-          <Download size={12} style={{ color: '#ccc' }} />
-        </button>
-      </div>
+      {allowDownload && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => downloadVfx(asset.id, asset.name)}
+            aria-label="Download"
+            className="p-1.5 rounded-lg"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+          >
+            <Download size={12} style={{ color: '#ccc' }} />
+          </button>
+        </div>
+      )}
       <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider truncate" style={{ color: '#444' }}>
         {asset.name.replace(/\.[^.]+$/, '')}
       </p>
@@ -71,7 +73,7 @@ function VideoCard({ asset }: { asset: VfxCardData }) {
 }
 
 // ── GIF card ─────────────────────────────────────────────────────────────────
-function GifCard({ asset }: { asset: VfxCardData }) {
+function GifCard({ asset, allowDownload }: { asset: VfxCardData; allowDownload: boolean }) {
   return (
     <div className="group relative rounded-2xl overflow-hidden" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.07)' }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -81,16 +83,18 @@ function GifCard({ asset }: { asset: VfxCardData }) {
         className="w-full h-auto block"
         style={{ maxHeight: '480px', objectFit: 'contain' }}
       />
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => downloadVfx(asset.id, asset.name)}
-          aria-label="Download"
-          className="p-1.5 rounded-lg"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
-        >
-          <Download size={12} style={{ color: '#ccc' }} />
-        </button>
-      </div>
+      {allowDownload && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => downloadVfx(asset.id, asset.name)}
+            aria-label="Download"
+            className="p-1.5 rounded-lg"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+          >
+            <Download size={12} style={{ color: '#ccc' }} />
+          </button>
+        </div>
+      )}
       <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider truncate" style={{ color: '#444' }}>
         {asset.name.replace(/\.[^.]+$/, '')}
       </p>
@@ -99,7 +103,7 @@ function GifCard({ asset }: { asset: VfxCardData }) {
 }
 
 // ── Unity / unknown — download only ──────────────────────────────────────────
-function PackageCard({ asset }: { asset: VfxCardData }) {
+function PackageCard({ asset, allowDownload }: { asset: VfxCardData; allowDownload: boolean }) {
   return (
     <div
       className="rounded-2xl flex flex-col items-center justify-center gap-3 py-10"
@@ -107,14 +111,16 @@ function PackageCard({ asset }: { asset: VfxCardData }) {
     >
       <Package size={32} style={{ color: '#444' }} />
       <p className="text-xs font-semibold text-white text-center px-4 truncate max-w-full">{asset.name}</p>
-      <button
-        onClick={() => downloadVfx(asset.id, asset.name)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
-        style={{ background: 'rgba(255,149,0,0.1)', color: '#FF9500', border: '1px solid rgba(255,149,0,0.25)' }}
-      >
-        <Download size={11} />
-        Download
-      </button>
+      {allowDownload && (
+        <button
+          onClick={() => downloadVfx(asset.id, asset.name)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all"
+          style={{ background: 'rgba(255,149,0,0.1)', color: '#FF9500', border: '1px solid rgba(255,149,0,0.25)' }}
+        >
+          <Download size={11} />
+          Download
+        </button>
+      )}
     </div>
   )
 }
@@ -122,9 +128,10 @@ function PackageCard({ asset }: { asset: VfxCardData }) {
 // ── Main grid ─────────────────────────────────────────────────────────────────
 interface VfxInlineGridProps {
   assets: VfxCardData[]
+  allowDownload?: boolean
 }
 
-export function VfxInlineGrid({ assets }: VfxInlineGridProps) {
+export function VfxInlineGrid({ assets, allowDownload = true }: VfxInlineGridProps) {
   if (assets.length === 0) return null
 
   return (
@@ -135,9 +142,9 @@ export function VfxInlineGrid({ assets }: VfxInlineGridProps) {
         const isVideo = ft === 'mp4' || ft === 'webm' || name.endsWith('.mp4') || name.endsWith('.webm')
         const isGif   = ft === 'gif'  || name.endsWith('.gif')
 
-        if (isVideo) return <VideoCard key={asset.id} asset={asset} />
-        if (isGif)   return <GifCard   key={asset.id} asset={asset} />
-        return           <PackageCard key={asset.id} asset={asset} />
+        if (isVideo) return <VideoCard key={asset.id} asset={asset} allowDownload={allowDownload} />
+        if (isGif)   return <GifCard   key={asset.id} asset={asset} allowDownload={allowDownload} />
+        return           <PackageCard key={asset.id} asset={asset} allowDownload={allowDownload} />
       })}
     </div>
   )

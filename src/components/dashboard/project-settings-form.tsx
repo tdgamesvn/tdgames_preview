@@ -24,8 +24,10 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const [name,         setName]         = useState(project.name)
   const [description,  setDescription]  = useState(project.description ?? '')
   const [spineVersion, setSpineVersion] = useState(project.spine_version ?? '')
-  const [shareEnabled, setShareEnabled] = useState(project.share_enabled)
-  const [status,       setStatus]       = useState<'active' | 'archived'>(project.status)
+  const [shareEnabled,    setShareEnabled]    = useState(project.share_enabled)
+  const [allowDownload,   setAllowDownload]   = useState(project.allow_download ?? true)
+  const [allowComments,   setAllowComments]   = useState(project.allow_comments ?? true)
+  const [status,          setStatus]          = useState<'active' | 'archived'>(project.status)
   const [cardBgType,   setCardBgType]   = useState<'color' | 'image'>(project.card_bg_type ?? 'color')
   const [cardBgValue,  setCardBgValue]  = useState(project.card_bg_value ?? '#3a3a3aff')
   const [bgUploading,  setBgUploading]  = useState(false)
@@ -74,6 +76,8 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       description: description.trim() || null,
       spine_version: spineVersion || null,
       share_enabled: shareEnabled,
+      allow_download: allowDownload,
+      allow_comments: allowComments,
       status,
       card_bg_type: cardBgType,
       card_bg_value: cardBgValue,
@@ -286,6 +290,69 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
             className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
             style={{
               transform: shareEnabled ? 'translateX(18px)' : 'translateX(3px)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            }}
+          />
+        </button>
+      </div>
+
+      {/* ── Client permissions ───────────────────────── */}
+      <div
+        className="flex items-center justify-between rounded-xl p-4"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <div>
+          <p className="text-sm font-medium text-white">Allow Downloads</p>
+          <p className="text-xs mt-0.5" style={{ color: '#555' }}>
+            Clients can download assets
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={allowDownload}
+          onClick={() => setAllowDownload(!allowDownload)}
+          className="relative inline-flex h-5 w-9 items-center rounded-full transition-all flex-shrink-0"
+          style={{
+            background: allowDownload ? '#FF9500' : 'rgba(255,255,255,0.1)',
+            boxShadow: allowDownload ? '0 0 8px rgba(255,149,0,0.4)' : 'none',
+          }}
+        >
+          <span
+            className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+            style={{
+              transform: allowDownload ? 'translateX(18px)' : 'translateX(3px)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            }}
+          />
+        </button>
+      </div>
+
+      <div
+        className="flex items-center justify-between rounded-xl p-4"
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <div>
+          <p className="text-sm font-medium text-white">Allow Comments</p>
+          <p className="text-xs mt-0.5" style={{ color: '#555' }}>
+            Clients can post and view comments
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={allowComments}
+          onClick={() => setAllowComments(!allowComments)}
+          className="relative inline-flex h-5 w-9 items-center rounded-full transition-all flex-shrink-0"
+          style={{
+            background: allowComments ? '#FF9500' : 'rgba(255,255,255,0.1)',
+            boxShadow: allowComments ? '0 0 8px rgba(255,149,0,0.4)' : 'none',
+          }}
+        >
+          <span
+            className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+            style={{
+              transform: allowComments ? 'translateX(18px)' : 'translateX(3px)',
               boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
             }}
           />

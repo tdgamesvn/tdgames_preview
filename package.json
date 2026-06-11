@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gitnexus:analyze": "gitnexus analyze",
+    "gitnexus:status": "gitnexus status",
+    "gitnexus:impact": "gitnexus impact",
+    "gitnexus:context": "gitnexus context",
+    "gitnexus:query": "gitnexus query"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1062.0",

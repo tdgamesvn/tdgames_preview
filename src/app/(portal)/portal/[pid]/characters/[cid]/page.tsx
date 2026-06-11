@@ -148,7 +148,7 @@ export default async function PortalCharacterPage({
         {filmstripAssets.length > 0 && (
           <section>
             <SectionHeader label="Art" count={filmstripAssets.length} />
-            <ArtFilmstrip assets={filmstripAssets} />
+            <ArtFilmstrip assets={filmstripAssets} allowDownload={project.allow_download ?? true} />
           </section>
         )}
 
@@ -171,22 +171,24 @@ export default async function PortalCharacterPage({
         {vfxCards.length > 0 && (
           <section>
             <SectionHeader label="VFX" count={vfxCards.length} />
-            <VfxInlineGrid assets={vfxCards} />
+            <VfxInlineGrid assets={vfxCards} allowDownload={project.allow_download ?? true} />
           </section>
         )}
 
-        {/* Zone E — Comments */}
-        <section>
-          <details open>
-            <summary
-              className="text-[10px] font-black uppercase tracking-widest cursor-pointer select-none mb-4"
-              style={{ color: '#444', listStyle: 'none' }}
-            >
-              ▾ &nbsp;Project Comments
-            </summary>
-            <Comments projectId={project.id} />
-          </details>
-        </section>
+        {/* Zone E — Comments (hidden when disabled for this project) */}
+        {(project.allow_comments ?? true) && (
+          <section>
+            <details open>
+              <summary
+                className="text-[10px] font-black uppercase tracking-widest cursor-pointer select-none mb-4"
+                style={{ color: '#444', listStyle: 'none' }}
+              >
+                ▾ &nbsp;Project Comments
+              </summary>
+              <Comments projectId={project.id} />
+            </details>
+          </section>
+        )}
 
       </div>
     </div>
