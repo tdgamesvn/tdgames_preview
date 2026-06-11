@@ -66,8 +66,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
     const map = new Map<string, File[]>()
     Array.from(fileList).forEach((f) => {
       if (isSystemFile(f.name)) return
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const folderName = (f as any).webkitRelativePath?.split('/')[0] ?? 'Unknown'
+      const folderName = (f as File & { webkitRelativePath?: string }).webkitRelativePath?.split('/')[0] ?? 'Unknown'
       if (!map.has(folderName)) map.set(folderName, [])
       map.get(folderName)!.push(f)
     })
@@ -95,6 +94,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
     }
 
     const tasks: PrvTask[] = result.data!
+    const taskMap = new Map(tasks.map((t) => [t.name, t]))
     const rows: ProgressRow[] = folders.map((f) => ({
       name: f.name,
       done: 0,
@@ -107,7 +107,13 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
 
     for (let i = 0; i < folders.length; i++) {
       const folder = folders[i]
-      const task = tasks[i]
+      const task = taskMap.get(folder.name)
+      if (!task) {
+        setProgress((prev) =>
+          prev.map((r, idx) => (idx === i ? { ...r, error: 'Task not found' } : r)),
+        )
+        continue
+      }
 
       for (const file of folder.files) {
         setProgress((prev) =>
@@ -116,7 +122,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
 
         try {
           const ext = getExtension(file.name)
-          const uniqueKey = `assets/${projectId}/${Date.now()}-${file.name}`
+          const uniqueKey = `assets/${projectId}/${crypto.randomUUID()}-${file.name}`
           const formData = new FormData()
           formData.append('file', file)
           formData.append('project_id', projectId)
@@ -162,7 +168,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
     return (
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
+        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false) }}
         onDrop={(e) => { e.preventDefault(); setDragging(false); readDroppedFolders(e.dataTransfer.items) }}
         className="rounded-2xl transition-all"
         style={{
@@ -225,7 +231,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
           <p className="text-xs font-black uppercase tracking-wider text-white">
             {folders.length} character{folders.length !== 1 ? 's' : ''} · {totalFiles} files detected
           </p>
-          <button onClick={reset} style={{ color: '#555' }}>
+          <button type="button" aria-label="Cancel import" onClick={reset} style={{ color: '#555' }}>
             <X size={14} />
           </button>
         </div>
@@ -260,6 +266,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
 
         <div className="flex gap-2 pt-1">
           <button
+            type="button"
             onClick={handleImport}
             className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
             style={{ background: '#FF9500', color: '#080808' }}
@@ -267,6 +274,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
             Import {folders.length} character{folders.length !== 1 ? 's' : ''}
           </button>
           <button
+            type="button"
             onClick={reset}
             className="px-4 py-2 rounded-xl text-sm font-medium transition-colors"
             style={{
@@ -339,7 +347,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
           {summary.chars} character{summary.chars !== 1 ? 's' : ''} imported · {summary.files} files uploaded
         </p>
       </div>
-      <button onClick={reset} className="text-xs font-medium" style={{ color: '#555' }}>
+      <button type="button" onClick={reset} className="text-xs font-medium" style={{ color: '#555' }}>
         Import more
       </button>
     </div>
