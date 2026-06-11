@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProjectSettingsForm } from '@/components/dashboard/project-settings-form'
 import { Comments } from '@/components/preview/comments'
 import { TaskManager } from '@/components/dashboard/task-manager'
+import { BulkFolderImport } from '@/components/dashboard/bulk-folder-import'
 import { CharacterCardGrid } from '@/components/dashboard/character-card-grid'
 import type { PrvProject, PrvClient, PrvTask } from '@/lib/types/database'
 import { ExternalLink } from 'lucide-react'
@@ -96,6 +97,9 @@ export default async function ProjectDetailPage({
           <div className="space-y-6">
             {/* Add character button */}
             <TaskManager projectId={project.id} clientId={params.id} />
+
+            {/* Bulk folder import */}
+            <BulkFolderImport projectId={project.id} clientId={params.id} />
 
             {/* Character card grid — rename + delete actions grouped under each card */}
             {taskList.length > 0 && (
