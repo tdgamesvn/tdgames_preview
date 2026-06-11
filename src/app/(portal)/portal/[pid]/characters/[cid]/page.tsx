@@ -115,7 +115,7 @@ export default async function PortalCharacterPage({
       {/* Breadcrumb */}
       <nav
         className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest mb-6 flex-wrap"
-        style={{ color: '#444' }}
+        style={{ color: '#888' }}
       >
         <Link href="/portal" className="hover:text-white transition-colors">Projects</Link>
         <span>›</span>

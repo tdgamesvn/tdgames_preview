@@ -93,7 +93,7 @@ export default async function PortalProjectPage({ params }: { params: { pid: str
           <Link
             href="/portal"
             className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors hover:text-white"
-            style={{ color: '#444' }}
+            style={{ color: '#888' }}
           >
             ← All Projects
           </Link>

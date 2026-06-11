@@ -31,12 +31,18 @@ export default async function ClientDetailPage({
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider flex-wrap">
+        <Link href="/dashboard/clients" className="text-neutral-medium hover:text-white transition-colors">
+          Clients
+        </Link>
+        <span className="text-neutral-dark">›</span>
+        <span className="text-white">{client.name}</span>
+      </nav>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wider text-neutral-medium mb-1">
-            Client
-          </p>
           <h1 className="text-lg font-black uppercase tracking-wider text-white">
             {client.name}
           </h1>
