@@ -34,7 +34,11 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
   const [phase, setPhase] = useState<Phase>('idle')
   const [folders, setFolders] = useState<FolderData[]>([])
   const [progress, setProgress] = useState<ProgressRow[]>([])
-  const [summary, setSummary] = useState({ chars: 0, files: 0 })
+  const [summary, setSummary] = useState<{
+    chars: number
+    files: number
+    errors: { name: string; reason: string }[]
+  }>({ chars: 0, files: 0, errors: [] })
   const [batchError, setBatchError] = useState<string | null>(null)
 
   async function readDroppedFolders(items: DataTransferItemList): Promise<void> {
@@ -152,7 +156,11 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
       }
     }
 
-    setSummary({ chars: folders.length, files: totalFiles })
+    const errorRows = rows
+      .filter((r) => r.error)
+      .map((r) => ({ name: r.name, reason: r.error! }))
+    const successCount = folders.length - errorRows.length
+    setSummary({ chars: successCount, files: totalFiles, errors: errorRows })
     setPhase('done')
     router.refresh()
   }
@@ -162,6 +170,7 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
     setFolders([])
     setProgress([])
     setBatchError(null)
+    setSummary({ chars: 0, files: 0, errors: [] })
   }
 
   if (phase === 'idle') {
@@ -336,20 +345,64 @@ export function BulkFolderImport({ projectId, clientId }: BulkFolderImportProps)
     )
   }
 
+  const hasErrors = summary.errors.length > 0
+  const hasSuccess = summary.chars > 0
+
   return (
-    <div
-      className="rounded-2xl flex items-center justify-between px-4 py-3"
-      style={{ border: '1px solid rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.05)' }}
-    >
-      <div className="flex items-center gap-2">
-        <CheckCircle2 size={16} style={{ color: '#22C55E' }} />
-        <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>
-          {summary.chars} character{summary.chars !== 1 ? 's' : ''} imported · {summary.files} files uploaded
-        </p>
-      </div>
-      <button type="button" onClick={reset} className="text-xs font-medium" style={{ color: '#555' }}>
-        Import more
-      </button>
+    <div className="rounded-2xl space-y-2" style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', padding: '16px' }}>
+      {/* Success row */}
+      {hasSuccess && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={15} style={{ color: '#22C55E', flexShrink: 0 }} />
+            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>
+              {summary.chars} character{summary.chars !== 1 ? 's' : ''} imported · {summary.files} files uploaded
+            </p>
+          </div>
+          {!hasErrors && (
+            <button type="button" onClick={reset} className="text-xs font-medium" style={{ color: '#555' }}>
+              Import more
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Error list */}
+      {hasErrors && (
+        <div
+          className="rounded-xl space-y-1 p-3"
+          style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)' }}
+        >
+          <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: '#EF4444' }}>
+            {summary.errors.length} folder{summary.errors.length !== 1 ? 's' : ''} failed
+          </p>
+          <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
+            {summary.errors.map((e) => (
+              <div key={e.name} className="flex items-start gap-2">
+                <span className="text-[10px] mt-0.5 flex-shrink-0" style={{ color: '#EF4444' }}>✗</span>
+                <div className="min-w-0">
+                  <span className="text-xs font-medium text-white truncate block">{e.name}</span>
+                  <span className="text-[10px] truncate block" style={{ color: '#EF4444' }}>{e.reason}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom actions */}
+      {(!hasSuccess || hasErrors) && (
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={reset}
+            className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
+            style={{ background: 'rgba(255,149,0,0.12)', color: '#FF9500', border: '1px solid rgba(255,149,0,0.2)' }}
+          >
+            Import more
+          </button>
+        </div>
+      )}
     </div>
   )
 }
