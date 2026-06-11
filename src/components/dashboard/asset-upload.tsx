@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react'
 import type { PrvAsset, ServiceType } from '@/lib/types/database'
+import { isSystemFile, getExtension, collectFromEntry } from '@/lib/utils/files'
 
 interface AssetUploadProps {
   projectId: string
@@ -67,30 +68,6 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
   })
 }
 
-/** OS/system files that should never be uploaded (Windows, macOS, etc.). */
-const SYSTEM_FILE_NAMES = new Set([
-  'desktop.ini', 'thumbs.db', 'thumbs.db:encryptable',
-  '.ds_store', '.localized', '.spotlight-v100', '.trashes',
-  '.fseventsd', '.temporaryitems', '.apdisk',
-])
-
-function isSystemFile(name: string): boolean {
-  const lower = name.toLowerCase()
-  // Exact system file names
-  if (SYSTEM_FILE_NAMES.has(lower)) return true
-  // Mac resource forks (._filename) and hidden dot-files
-  if (lower.startsWith('._') || lower.startsWith('.')) return true
-  return false
-}
-
-function getExtension(filename: string): string {
-  // Handle .atlas.txt → atlas, .skel.bytes → skel, etc.
-  const parts = filename.split('.')
-  if (parts.length >= 3 && ['txt', 'bytes'].includes(parts[parts.length - 1])) {
-    return parts[parts.length - 2].toLowerCase()
-  }
-  return parts.pop()?.toLowerCase() ?? 'bin'
-}
 
 export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [] }: AssetUploadProps) {
   const router   = useRouter()
@@ -165,27 +142,6 @@ export function AssetUpload({ projectId, serviceType, taskId, existingAssets = [
       setUploading(false)
       setTimeout(() => { setProgress(null); setDone(false) }, 3500)
     }
-  }
-
-  /** Recursively collect all files from a FileSystemEntry (handles folders). */
-  async function collectFromEntry(entry: FileSystemEntry): Promise<File[]> {
-    if (entry.isFile) {
-      return new Promise<File[]>((resolve) => {
-        (entry as FileSystemFileEntry).file(
-          (f) => resolve([f]),
-          () => resolve([]),
-        )
-      })
-    }
-    if (entry.isDirectory) {
-      const reader = (entry as FileSystemDirectoryEntry).createReader()
-      const entries = await new Promise<FileSystemEntry[]>((resolve) => {
-        reader.readEntries(resolve, () => resolve([]))
-      })
-      const nested = await Promise.all(entries.map(collectFromEntry))
-      return nested.flat()
-    }
-    return []
   }
 
   /** Handle drop — supports both files and folders via DataTransferItem API. */
