@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getPublicUrl } from '@/lib/r2'
-import { CharacterCardItem, type SpineCardConfig } from './character-card-item'
-import { RenameTaskButton } from './rename-task-button'
-import { DeleteTaskInline } from './delete-task-inline'
+import { CharacterCardPager } from './character-card-pager'
+import type { SpineCardConfig } from './character-card-item'
 import type { PrvTask, PrvProject, PrvAsset } from '@/lib/types/database'
 
 interface CharacterCardGridProps {
@@ -14,6 +13,12 @@ interface CharacterCardGridProps {
   clientId?: string
 }
 
+/**
+ * Server component: fetches artUrl + spineConfig for every task, then
+ * hands the full data set to CharacterCardPager which handles client-side
+ * pagination (PAGE_SIZE=8).  Rendering only 8 cards at a time keeps
+ * concurrent WebGL contexts within browser limits.
+ */
 export async function CharacterCardGrid({ tasks, project, linkPrefix, readonly, clientId }: CharacterCardGridProps) {
   if (tasks.length === 0) return null
 
@@ -66,28 +71,13 @@ export async function CharacterCardGrid({ tasks, project, linkPrefix, readonly, 
     })
   )
 
-  const showActions = !readonly && !!clientId
-
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {taskData.map(({ task, artUrl, spineConfig }) => (
-        <div key={task.id} className="flex flex-col gap-2">
-          <CharacterCardItem
-            task={task}
-            href={`${linkPrefix}/characters/${task.id}`}
-            artUrl={artUrl}
-            spineConfig={spineConfig}
-            cardBgType={project.card_bg_type}
-            cardBgValue={project.card_bg_value}
-          />
-          {showActions && (
-            <div className="flex gap-1">
-              <RenameTaskButton task={task} clientId={clientId!} />
-              <DeleteTaskInline task={task} clientId={clientId!} />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+    <CharacterCardPager
+      taskData={taskData}
+      project={project}
+      linkPrefix={linkPrefix}
+      showActions={!readonly && !!clientId}
+      clientId={clientId}
+    />
   )
 }
