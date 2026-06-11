@@ -53,7 +53,7 @@ export function CharacterCardPager({
   return (
     <div className="space-y-6">
       {/* Grid — only renders PAGE_SIZE cards at a time */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
         {pageTasks.map(({ task, artUrl, spineConfig }) => (
           <div key={task.id} className="flex flex-col gap-2">
             <CharacterCardItem
