@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
+import { acquireWebGLSlot, releaseWebGLSlot } from '@/lib/webgl-semaphore'
 
 export interface SpineAvatarPreviewHandle {
   setAnimation: (name: string) => void
@@ -46,12 +47,12 @@ const spineScriptPromises: Partial<Record<string, Promise<void>>> = {}
 
 function ensureSpineScript(version: string): Promise<void> {
   const scriptId = `spine-js-${version}`
-  if (spineScriptPromises[scriptId]) return spineScriptPromises[scriptId]
+  if (spineScriptPromises[scriptId]) return spineScriptPromises[scriptId]!
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((window as any).spine?.SpinePlayer) {
     spineScriptPromises[scriptId] = Promise.resolve()
-    return spineScriptPromises[scriptId]
+    return spineScriptPromises[scriptId]!
   }
 
   const existing = document.getElementById(scriptId)
@@ -59,20 +60,19 @@ function ensureSpineScript(version: string): Promise<void> {
     // Script tag in DOM but not yet loaded — attach to its events.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).spine?.SpinePlayer) {
-      // Already loaded (load event fired before we attached listener)
       spineScriptPromises[scriptId] = Promise.resolve()
-      return spineScriptPromises[scriptId]
+      return spineScriptPromises[scriptId]!
     }
     spineScriptPromises[scriptId] = new Promise<void>((resolve, reject) => {
       const onLoad = () => resolve()
       const onError = () => {
-        delete spineScriptPromises[scriptId] // clear so next attempt retries
+        delete spineScriptPromises[scriptId]
         reject(new Error(`Failed to load Spine v${version}`))
       }
       existing.addEventListener('load', onLoad, { once: true })
       existing.addEventListener('error', onError, { once: true })
     })
-    return spineScriptPromises[scriptId]
+    return spineScriptPromises[scriptId]!
   }
 
   spineScriptPromises[scriptId] = new Promise<void>((resolve, reject) => {
@@ -81,12 +81,12 @@ function ensureSpineScript(version: string): Promise<void> {
     script.src = getScriptUrl(version)
     script.onload = () => resolve()
     script.onerror = () => {
-      delete spineScriptPromises[scriptId] // clear so next attempt retries
+      delete spineScriptPromises[scriptId]
       reject(new Error(`Failed to load Spine v${version}`))
     }
     document.body.appendChild(script)
   })
-  return spineScriptPromises[scriptId]
+  return spineScriptPromises[scriptId]!
 }
 
 export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvatarPreviewProps>(
@@ -108,9 +108,11 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
     ref
   ) {
     const containerRef = useRef<HTMLDivElement>(null)
-    const initializedRef = useRef(false)
+    const initInProgressRef = useRef(false)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerInstanceRef = useRef<any>(null)
+    const disposeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const slotAcquiredRef = useRef(false)
     const onErrorRef = useRef(onError)
     const onLoadedRef = useRef(onLoaded)
     const scaleRef = useRef(scale)
@@ -138,32 +140,76 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
 
       let cancelled = false
 
+      // ─── Dispose helper ──────────────────────────────────────────────────────
+      function disposePlayer() {
+        if (disposeTimerRef.current) {
+          clearTimeout(disposeTimerRef.current)
+          disposeTimerRef.current = null
+        }
+        initInProgressRef.current = false
+        // Release slot only if still held — this covers the case where the
+        // card scrolls off BEFORE success fires (init was cut short).
+        // In the normal path the slot is already released inside success().
+        if (slotAcquiredRef.current) {
+          releaseWebGLSlot()
+          slotAcquiredRef.current = false
+        }
+        if (playerInstanceRef.current) {
+          try { playerInstanceRef.current.dispose?.() } catch { /* ignore */ }
+          playerInstanceRef.current = null
+        }
+        // Clear the DOM so the next init gets a clean container
+        if (containerRef.current) {
+          containerRef.current.innerHTML = ''
+        }
+      }
+
+      // ─── IntersectionObserver: init on enter, dispose on exit ────────────────
+      // rootMargin: pre-load cards 150 px before they reach the fold so users
+      // see the animation already running, not a blank → spinning load.
+      // threshold 0 = fire as soon as any pixel enters/exits.
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && !initializedRef.current) {
-            observer.disconnect()
-            init()
+          const entry = entries[0]
+
+          if (entry.isIntersecting) {
+            // Cancel any scheduled dispose (user scrolled back quickly)
+            if (disposeTimerRef.current) {
+              clearTimeout(disposeTimerRef.current)
+              disposeTimerRef.current = null
+            }
+            // Only spin up if no player is running and no init in progress
+            if (!playerInstanceRef.current && !initInProgressRef.current && !cancelled) {
+              init()
+            }
+          } else {
+            // Dispose after 1.5 s — avoids destroying/recreating when the user
+            // merely scrolls past briefly. Keeps count well below GL limit.
+            if ((playerInstanceRef.current || initInProgressRef.current) && !disposeTimerRef.current) {
+              disposeTimerRef.current = setTimeout(() => {
+                disposeTimerRef.current = null
+                if (!cancelled) disposePlayer()
+              }, 1500)
+            }
           }
         },
-        { threshold: 0.1 }
+        { threshold: 0, rootMargin: '150px 0px' }
       )
       observer.observe(container)
 
+      // ─── Init ────────────────────────────────────────────────────────────────
       async function init() {
-        if (cancelled) return
+        if (cancelled || playerInstanceRef.current || initInProgressRef.current) return
+        initInProgressRef.current = true
 
-        // Catch uncaught Spine runtime errors (e.g. "Region not found in atlas")
-        // that are thrown inside requestAnimationFrame and bypass both try/catch
-        // and the SpinePlayer's error callback.
         let errorFired = false
         function onWindowError(event: ErrorEvent) {
           if (errorFired || cancelled) return
           const msg = event.message || event.error?.message || ''
-          // Only catch errors originating from the Spine runtime script
           const src = event.filename || ''
           if (src.includes('spine-player') || msg.includes('Region not found') || msg.includes('spine')) {
             errorFired = true
-            event.preventDefault() // suppress console noise
+            event.preventDefault()
             onErrorRef.current?.(msg)
           }
         }
@@ -172,16 +218,34 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
         try {
           await ensureSpineScript(spineVersion)
 
-          if (cancelled || !containerRef.current) return
+          if (cancelled || !containerRef.current) {
+            window.removeEventListener('error', onWindowError)
+            initInProgressRef.current = false
+            return
+          }
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const SpinePlayerClass = (window as any).spine?.SpinePlayer
           if (!SpinePlayerClass) {
             onErrorRef.current?.('Spine runtime failed to load')
+            initInProgressRef.current = false
             return
           }
 
-          initializedRef.current = true
+          // ── Throttle concurrent WebGL context creation ───────────────────
+          // acquireWebGLSlot() blocks here until a slot is free.
+          // While waiting the card may scroll out → disposePlayer() sets
+          // initInProgressRef to false, so we re-check after the await.
+          await acquireWebGLSlot()
+          slotAcquiredRef.current = true
+
+          if (cancelled || !containerRef.current || !initInProgressRef.current) {
+            // Card was disposed or unmounted while we were queued.
+            releaseWebGLSlot()
+            slotAcquiredRef.current = false
+            window.removeEventListener('error', onWindowError)
+            return
+          }
 
           const viewport = autoFit
             ? { padLeft: '6%', padRight: '6%', padTop: '6%', padBottom: '6%' }
@@ -196,8 +260,6 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
                 padBottom: '0%',
               }
 
-          // Store the player reference immediately so cleanup can dispose it
-          // even if the component unmounts before success/error fires.
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const player = new SpinePlayerClass(containerRef.current, {
             jsonUrl,
@@ -211,15 +273,20 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
             viewport,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             success: (p: any) => {
+              initInProgressRef.current = false
+              // Release slot in ALL cases — player is either running (normal) or
+              // being immediately discarded (cancelled).  Either way the init
+              // phase is over and the next queued card should start.
+              if (slotAcquiredRef.current) {
+                releaseWebGLSlot()
+                slotAcquiredRef.current = false
+              }
               if (cancelled) {
                 try { p?.dispose?.() } catch { /* ignore */ }
                 return
               }
               playerInstanceRef.current = p
-              // Remove the global listener once successfully loaded
               window.removeEventListener('error', onWindowError)
-              // SpinePlayer uses backgroundColor config for its own CSS bg —
-              // do NOT override it to transparent (that removes the bg color).
               try {
                 const data = p?.skeleton?.data
                 if (data) {
@@ -234,47 +301,44 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
               }
             },
             error: (_p: unknown, msg: string) => {
+              initInProgressRef.current = false
+              if (slotAcquiredRef.current) {
+                releaseWebGLSlot()
+                slotAcquiredRef.current = false
+              }
               if (!cancelled && !errorFired) {
                 errorFired = true
                 onErrorRef.current?.(msg || 'Spine player error')
               }
             },
           })
-          // Fallback: store player in ref if success hasn't fired yet
+
+          // Fallback: store player ref if success hasn't fired yet
           if (!playerInstanceRef.current) playerInstanceRef.current = player
 
-          // Note: SpinePlayer handles backgroundColor via its own CSS —
-          // we pass the project bg color directly and let it render natively.
         } catch (err) {
+          initInProgressRef.current = false
+          if (slotAcquiredRef.current) {
+            releaseWebGLSlot()
+            slotAcquiredRef.current = false
+          }
           if (!cancelled && !errorFired) {
             errorFired = true
             onErrorRef.current?.(err instanceof Error ? err.message : 'Spine init failed')
           }
         }
 
-        // Safety: remove global listener after 10s if neither success nor error fired
         setTimeout(() => window.removeEventListener('error', onWindowError), 10000)
       }
 
       return () => {
         cancelled = true
         observer.disconnect()
-        // Reset so effect re-runs on prop changes can re-initialize
-        initializedRef.current = false
-        // Dispose the player to release WebGL context
-        try {
-          playerInstanceRef.current?.dispose?.()
-        } catch {
-          /* ignore disposal errors */
-        }
-        playerInstanceRef.current = null
+        disposePlayer()
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
 
-    // In autoFit mode, scale/offsetX/offsetY are only meaningful in viewport mode.
-    // Do NOT apply them as CSS transforms — that would push the canvas off-screen
-    // when world-unit values (e.g. scale=5, offsetY=1000) are stored in the DB.
     return (
       <div className="w-full h-full" style={{ background: 'transparent' }}>
         <div ref={containerRef} className="w-full h-full" />
