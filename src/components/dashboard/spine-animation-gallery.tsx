@@ -8,6 +8,9 @@ interface SpineAnimationGalleryProps {
   jsonName: string
   atlasName: string
   spineVersion: string
+  /** Override the spine API base path. Defaults to '/api/spine'.
+   *  Share pages pass '/api/share-spine/<token>' for anonymous access. */
+  spineApiBase?: string
   /** Project-level card background */
   cardBgType?: 'color' | 'image'
   cardBgValue?: string
@@ -24,11 +27,12 @@ export function SpineAnimationGallery({
   jsonName,
   atlasName,
   spineVersion,
+  spineApiBase = '/api/spine',
   cardBgType,
   cardBgValue,
 }: SpineAnimationGalleryProps) {
-  const jsonUrl = `/api/spine/${taskId}/${encodeURIComponent(jsonName)}`
-  const atlasUrl = `/api/spine/${taskId}/${encodeURIComponent(atlasName)}`
+  const jsonUrl = `${spineApiBase}/${taskId}/${encodeURIComponent(jsonName)}`
+  const atlasUrl = `${spineApiBase}/${taskId}/${encodeURIComponent(atlasName)}`
 
   const [animations, setAnimations] = useState<string[]>([])
   const [skins, setSkins] = useState<string[]>([])
