@@ -74,6 +74,18 @@ it('returns 404 when asset not found', async () => {
   expect(res.status).toBe(404)
 })
 
+it('returns 404 when taskId belongs to a different project', async () => {
+  // project.id is 'proj1', but asset query returns null because project_id filter fails
+  mockAdminFrom
+    .mockReturnValueOnce(makeProjectChain({ id: 'proj1', share_token: 'tok', share_enabled: true }))
+    .mockReturnValueOnce(makeAssetChain(null)) // null = project_id mismatch → not found
+  const res = await GET(
+    makeRequest('tok', 'task-from-other-project', 'char.json'),
+    makeParams('tok', 'task-from-other-project', 'char.json')
+  )
+  expect(res.status).toBe(404)
+})
+
 it('streams R2 object when token and asset are valid', async () => {
   mockAdminFrom
     .mockReturnValueOnce(makeProjectChain({ id: 'proj1', share_token: 'tok', share_enabled: true }))

@@ -34,6 +34,7 @@ export async function GET(
   const { data: asset } = await admin
     .from('Prv_assets')
     .select('r2_key, name')
+    .eq('project_id', project.id)
     .eq('task_id', params.taskId)
     .eq('name', name)
     .limit(1)
