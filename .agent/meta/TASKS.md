@@ -4,6 +4,13 @@
 (none — all phases complete ✅)
 
 ## Done (recent)
+- [x] Share Page Portal Parity — COMPLETE (commits 9a5e269…485965b, pushed 2026-06-12)
+  - [x] Task 1: /api/share-spine/[token]/[taskId]/[name] — anonymous Spine proxy (5 tests)
+  - [x] Task 2: spineApiBase prop on SpineAnimationGallery
+  - [x] Task 3: src/app/share/layout.tsx — grain overlay + "Public Preview" badge
+  - [x] Task 4: src/app/share/[token]/page.tsx — PortalCharacterGrid roster
+  - [x] Task 5: src/app/share/[token]/characters/[cid]/page.tsx — ShowcaseHero + art + animations + VFX
+  - [x] Task 6: 64/64 tests pass, build clean, pushed to main
 - [x] P6: Portal Redesign — Character-First Showcase — COMPLETE (commit a885037)
   - [x] Portal layout: dark #080808 + grain texture overlay
   - [x] /portal: cinematic 16:9 project cards with cover art + hover glow

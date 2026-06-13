@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ProjectForm } from '@/components/dashboard/project-form'
 import { ClientForm } from '@/components/dashboard/client-form'
+import { ClientAccountsSection, type ClientAccount } from '@/components/dashboard/client-accounts'
 import { deleteProject } from '@/lib/actions/projects'
 import type { PrvClient, PrvProject } from '@/lib/types/database'
 
@@ -28,6 +30,30 @@ export default async function ClientDetailPage({
     .order('created_at', { ascending: false })) as {
     data: PrvProject[] | null
   }
+
+  // ── Login accounts: profiles + emails via admin API ─────────────────────
+  const adminClient = createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profileRows } = await (adminClient as any)
+    .from('Prv_profiles')
+    .select('id, display_name, created_at')
+    .eq('role', 'client')
+    .eq('client_id', params.id)
+    .order('created_at', { ascending: true })
+
+  const accounts: ClientAccount[] = await Promise.all(
+    ((profileRows as { id: string; display_name: string; created_at: string }[]) ?? []).map(
+      async (p) => {
+        const { data } = await adminClient.auth.admin.getUserById(p.id)
+        return {
+          id: p.id,
+          email: data.user?.email ?? '(no email)',
+          display_name: p.display_name,
+          created_at: p.created_at,
+        }
+      }
+    )
+  )
 
   return (
     <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
@@ -123,6 +149,14 @@ export default async function ClientDetailPage({
           })}
         </div>
       )}
+
+      {/* ── Login Accounts section ───────────────────────────────────────── */}
+      <div
+        className="pt-5 mt-2"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <ClientAccountsSection accounts={accounts} clientId={client.id} />
+      </div>
     </div>
   )
 }

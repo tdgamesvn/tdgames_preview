@@ -1,5 +1,22 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-13 (Client Account Management)
+- TDD: viết 8 tests trước → implement `createClientAccount`, `updateClientAccountPassword`, `deleteClientAccount` trong `src/lib/actions/client-accounts.ts`
+- Actions dùng `createAdminClient()` (service role): tạo Supabase Auth user với `email_confirm: true`, upsert `Prv_profiles`, rollback auth user nếu profile fail
+- `ClientAccountsSection` component (`src/components/dashboard/client-accounts.tsx`): Add/Change PW/Delete dialogs với shadcn Dialog + DarkInput styling
+- Wire vào `clients/[id]/page.tsx`: query `Prv_profiles` + `auth.admin.getUserById` để fetch email, render section bên dưới projects grid
+- 77/77 tests pass, zero ESLint/TS errors trên code mới
+
+## 2026-06-12 (Share Page Portal Parity)
+- Hoàn thành plan `2026-06-12-share-page-portal-parity.md`
+- Task 1: `/api/share-spine/[token]/[taskId]/[name]` — proxy R2 Spine assets, validate bằng share_token, không cần auth session. Thêm fix scope project để chặn cross-project data leak. 5 tests pass.
+- Task 2: `spineApiBase` prop trên `SpineAnimationGallery` — share pages pass `/api/share-spine/<token>` thay vì `/api/spine`.
+- Task 3: `src/app/share/layout.tsx` — grain overlay + header "Public Preview" badge, không có login/logout.
+- Task 4: Rewrite `src/app/share/[token]/page.tsx` — dùng `PortalCharacterGrid` thay flat asset list.
+- Task 5: Tạo `src/app/share/[token]/characters/[cid]/page.tsx` — `ShowcaseHero` + `ArtFilmstrip` + `SpineAnimationGallery` + `VfxInlineGrid`. `allowDownload={false}` cho anonymous.
+- Task 6: 64/64 tests pass, build clean, pushed main → auto-deploy triggered.
+- Routes mới: `ƒ /share/[token]`, `ƒ /share/[token]/characters/[cid]`, `ƒ /api/share-spine/[token]/[taskId]/[name]`
+
 ## 2026-06-07 (Bugfix — Spine card race condition + gallery error)
 - Điều tra systematic: 3 bugs được report (cards không hiện animation, "Animation bounds are invalid", "Something went wrong").
 - Bug A (Race condition): Khi 3 SpineAvatarPreview cards hiện đồng thời, card 1 append `<script>` vào DOM đồng bộ rồi await load. Card 2+3 thấy `getElementById` = true → bỏ await → `window.spine = undefined` → `onError()` → fallback art/letter. Fix: module-level `ensureSpineScript()` cache Promise dùng chung.
