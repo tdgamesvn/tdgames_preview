@@ -2,6 +2,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isInternalNetworkRequest } from '@/lib/share-access'
+
+// Never cache share pages — IP restriction must be evaluated on every request
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { getPublicUrl } from '@/lib/r2'
 import { ArtFilmstrip } from '@/components/portal/art-filmstrip'
 import { SectionHeader } from '@/components/portal/section-header'

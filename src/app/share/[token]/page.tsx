@@ -1,6 +1,10 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { isInternalNetworkRequest } from '@/lib/share-access'
+
+// Never cache share pages — IP restriction must be evaluated on every request
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 import { getPublicUrl } from '@/lib/r2'
 import { PortalCharacterGrid, type CharacterCardData } from '@/components/portal/portal-character-grid'
 import { CommentsDrawer } from '@/components/portal/comments-drawer'
