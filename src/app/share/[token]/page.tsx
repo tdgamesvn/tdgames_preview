@@ -22,7 +22,7 @@ export default async function SharePage({ params }: Props) {
   if (!project) notFound()
 
   // IP restriction: when share_internal_only is on, only allow company network
-  if (project.share_internal_only && !isInternalNetworkRequest()) {
+  if (project.share_internal_only && !isInternalNetworkRequest(project.share_allowed_ips)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
         <span className="text-5xl">🔒</span>

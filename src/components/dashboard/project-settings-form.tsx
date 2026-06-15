@@ -26,6 +26,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const [spineVersion, setSpineVersion] = useState(project.spine_version ?? '')
   const [shareEnabled,       setShareEnabled]       = useState(project.share_enabled)
   const [shareInternalOnly, setShareInternalOnly] = useState(project.share_internal_only ?? false)
+  const [shareAllowedIps,   setShareAllowedIps]   = useState(project.share_allowed_ips ?? '')
   const [allowDownload,   setAllowDownload]   = useState(project.allow_download ?? true)
   const [allowComments,   setAllowComments]   = useState(project.allow_comments ?? true)
   const [status,          setStatus]          = useState<'active' | 'archived'>(project.status)
@@ -79,6 +80,10 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       spine_version: spineVersion || null,
       share_enabled: shareEnabled,
       share_internal_only: shareInternalOnly,
+      // Normalize: support both newlines and commas, then rejoin as comma-separated
+      share_allowed_ips: shareAllowedIps.trim()
+        ? shareAllowedIps.split(/[\n,]+/).map(s => s.trim()).filter(Boolean).join(',')
+        : null,
       allow_download: allowDownload,
       allow_comments: allowComments,
       status,
@@ -322,6 +327,31 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
           />
         </button>
       </div>
+
+      {/* ── Allowed IPs (when internal only is on) ───── */}
+      {shareEnabled && shareInternalOnly && (
+        <div className="space-y-1.5">
+          <label
+            htmlFor="share-allowed-ips"
+            className="text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: '#666' }}
+          >
+            Allowed IPs
+          </label>
+          <textarea
+            id="share-allowed-ips"
+            value={shareAllowedIps}
+            onChange={e => setShareAllowedIps(e.target.value)}
+            rows={3}
+            placeholder={'203.0.113.1\n203.0.113.2'}
+            className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none resize-none font-mono"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+          />
+          <p className="text-xs" style={{ color: '#444' }}>
+            One IP per line (or comma-separated). Leave empty to use the server env var.
+          </p>
+        </div>
+      )}
 
       {/* ── Client permissions ───────────────────────── */}
       <div

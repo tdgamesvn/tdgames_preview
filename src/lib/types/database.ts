@@ -38,8 +38,10 @@ export interface PrvProject {
   allow_comments: boolean
   /** Locked Spine skin for this project's animation preview (null = no lock) */
   default_skin: string | null
-  /** When true, share link is restricted to IPs in SHARE_INTERNAL_ALLOWED_IPS */
+  /** When true, share link is restricted to IPs in share_allowed_ips (or env fallback) */
   share_internal_only: boolean
+  /** Comma-separated allowed IPs for internal-only share. Managed via dashboard UI. */
+  share_allowed_ips: string | null
   created_at: string
 }
 
