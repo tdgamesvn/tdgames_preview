@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Eye, Download } from 'lucide-react'
 import { AssetViewerModal } from '@/components/preview/asset-viewer-modal'
-import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
 import type { PrvAsset, ServiceType } from '@/lib/types/database'
 
 function stripExt(name: string): string {
@@ -30,6 +29,8 @@ interface AssetGridClientProps {
   presignedUrls?: Record<string, string>  // art thumbnails, pre-generated server-side
   cardBgType?: 'color' | 'image'
   cardBgValue?: string
+  /** Locked skin from project settings — forwarded to SpinePlayer via AssetViewerModal */
+  projectDefaultSkin?: string | null
 }
 
 const TYPE_ICON: Record<ServiceType, string> = {
@@ -47,6 +48,7 @@ export function AssetGridClient({
   presignedUrls = {},
   cardBgType,
   cardBgValue,
+  projectDefaultSkin,
 }: AssetGridClientProps) {
   const router = useRouter()
   const [viewingAsset, setViewingAsset] = useState<PrvAsset | null>(null)
@@ -87,66 +89,55 @@ export function AssetGridClient({
     router.refresh()
   }
 
-  // Animation tab: show the playable Spine inline instead of the raw json/png/
-  // atlas files. Group files by base name; each set with a .json is one player.
+  // Animation tab: show source files only (Change 1 — SpineAnimationGallery removed).
+  // Group by base name so .json / .atlas / .png appear together.
   if (serviceType === 'animation' && spineVersion) {
     const jsonSets = assets.filter(
       a => (a.file_type === 'json' || a.name.endsWith('.json')) && a.task_id
     )
     if (jsonSets.length > 0) {
       return (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {jsonSets.map(json => {
             const base = stripExt(json.name)
             const setFiles = assets.filter(a => stripExt(a.name) === base)
             return (
-              <div key={json.id} className="space-y-2">
-                <SpineAnimationGallery
-                  taskId={json.task_id!}
-                  jsonName={json.name}
-                  atlasName={`${base}.atlas`}
-                  spineVersion={spineVersion}
-                  cardBgType={cardBgType}
-                  cardBgValue={cardBgValue}
-                />
-                {/* Source files — always expanded, Delete All in header row */}
-                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
-                  {/* Header */}
-                  <div className="flex items-center justify-between px-3 py-2"
-                    style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                    <span className="text-xs font-semibold" style={{ color: '#666' }}>
-                      Source files ({setFiles.length})
-                    </span>
-                    {!readonly && setFiles.length > 1 && (
-                      <button
-                        onClick={(e) => handleDeleteAll(e, setFiles)}
-                        disabled={deletingAll}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
-                        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}
-                      >
-                        <Trash2 size={11} />
-                        {deletingAll ? 'Deleting…' : 'Delete all'}
+              <div key={json.id} className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                {/* Header */}
+                <div className="flex items-center justify-between px-3 py-2"
+                  style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-xs font-semibold" style={{ color: '#666' }}>
+                    Source files ({setFiles.length})
+                  </span>
+                  {!readonly && setFiles.length > 1 && (
+                    <button
+                      onClick={(e) => handleDeleteAll(e, setFiles)}
+                      disabled={deletingAll}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#EF4444' }}
+                    >
+                      <Trash2 size={11} />
+                      {deletingAll ? 'Deleting…' : 'Delete all'}
+                    </button>
+                  )}
+                </div>
+                {/* File rows */}
+                <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+                  {setFiles.map(f => (
+                    <div key={f.id} className="flex items-center gap-3 px-3 py-2.5">
+                      <span className="text-white text-sm font-medium flex-1 truncate" title={f.name}>{f.name}</span>
+                      <button onClick={() => downloadAsset(f.id, f.name)}
+                        className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-[#FF9500] transition-colors" title="Download">
+                        <Download size={14} />
                       </button>
-                    )}
-                  </div>
-                  {/* File rows */}
-                  <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                    {setFiles.map(f => (
-                      <div key={f.id} className="flex items-center gap-3 px-3 py-2.5">
-                        <span className="text-white text-sm font-medium flex-1 truncate" title={f.name}>{f.name}</span>
-                        <button onClick={() => downloadAsset(f.id, f.name)}
-                          className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-[#FF9500] transition-colors" title="Download">
-                          <Download size={14} />
+                      {!readonly && (
+                        <button onClick={(e) => handleDelete(e, f.id)} disabled={deleting === f.id}
+                          className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/10 text-neutral-400 hover:text-red-400 transition-colors disabled:opacity-40" title="Delete">
+                          <Trash2 size={14} />
                         </button>
-                        {!readonly && (
-                          <button onClick={(e) => handleDelete(e, f.id)} disabled={deleting === f.id}
-                            className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/10 text-neutral-400 hover:text-red-400 transition-colors disabled:opacity-40" title="Delete">
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )
@@ -239,6 +230,7 @@ export function AssetGridClient({
               : []
           }
           spineVersion={spineVersion}
+          projectDefaultSkin={projectDefaultSkin}
           onClose={() => setViewingAsset(null)}
         />
       )}

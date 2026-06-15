@@ -36,6 +36,8 @@ export interface PrvProject {
   allow_download: boolean
   /** Allow clients to post / view comments (default true) */
   allow_comments: boolean
+  /** Locked Spine skin for this project's animation preview (null = no lock) */
+  default_skin: string | null
   created_at: string
 }
 

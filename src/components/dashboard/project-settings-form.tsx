@@ -28,6 +28,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const [allowDownload,   setAllowDownload]   = useState(project.allow_download ?? true)
   const [allowComments,   setAllowComments]   = useState(project.allow_comments ?? true)
   const [status,          setStatus]          = useState<'active' | 'archived'>(project.status)
+  const [defaultSkin,  setDefaultSkin]  = useState(project.default_skin ?? '')
   const [cardBgType,   setCardBgType]   = useState<'color' | 'image'>(project.card_bg_type ?? 'color')
   const [cardBgValue,  setCardBgValue]  = useState(project.card_bg_value ?? '#3a3a3aff')
   const [bgUploading,  setBgUploading]  = useState(false)
@@ -81,6 +82,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       status,
       card_bg_type: cardBgType,
       card_bg_value: cardBgValue,
+      default_skin: defaultSkin.trim() || null,
     })
     setSaving(false)
     if (result.error) { setErrorMsg(result.error); return }
@@ -153,6 +155,29 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
         </Select>
         <p className="text-xs" style={{ color: '#444' }}>
           Used by all Animation assets in this project
+        </p>
+      </div>
+
+      {/* ── Default Skin ──────────────────────────────── */}
+      <div className="space-y-1.5">
+        <label
+          htmlFor="default-skin-input"
+          className="text-[10px] font-semibold uppercase tracking-widest"
+          style={{ color: '#666' }}
+        >
+          Default Skin
+        </label>
+        <input
+          id="default-skin-input"
+          type="text"
+          value={defaultSkin}
+          onChange={e => setDefaultSkin(e.target.value)}
+          placeholder="e.g. SkinA (leave empty for no lock)"
+          className="w-full px-3 py-2 rounded-xl text-sm text-white outline-none"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+        />
+        <p className="text-xs" style={{ color: '#444' }}>
+          Locks this skin in the animation preview modal (exact Spine skin name)
         </p>
       </div>
 

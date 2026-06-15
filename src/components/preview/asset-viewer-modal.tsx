@@ -11,6 +11,8 @@ interface AssetViewerModalProps {
   asset: PrvAsset & { presignedUrl?: string }
   allArtAssets?: (PrvAsset & { presignedUrl?: string })[]  // for lightbox navigation
   spineVersion?: string | null
+  /** Locked Spine skin from project settings — passed through to SpinePlayer */
+  projectDefaultSkin?: string | null
   onClose: () => void
 }
 
@@ -25,6 +27,7 @@ export function AssetViewerModal({
   asset,
   allArtAssets = [],
   spineVersion,
+  projectDefaultSkin,
   onClose,
 }: AssetViewerModalProps) {
   const [presignedUrl, setPresignedUrl] = useState<string | null>(asset.presignedUrl ?? null)
@@ -127,6 +130,7 @@ export function AssetViewerModal({
               atlasUrl={spineAtlasUrl}
               spineVersion={spineVersion}
               assetName={asset.name}
+              lockedSkin={projectDefaultSkin ?? undefined}
               onDownload={() => handleDownload(asset.id)}
             />
           )}

@@ -102,6 +102,7 @@ export default async function DashboardCharacterPage({
             taskId={task.id}
             cardBgType={project.card_bg_type}
             cardBgValue={project.card_bg_value}
+            projectDefaultSkin={project.default_skin}
           />
         </TabsContent>
 

@@ -10,6 +10,8 @@ interface SpinePlayerProps {
   /** Optional — spine-player's built-in controls let the user switch these at runtime. */
   animations?: string[]
   skins?: string[]
+  /** When set, pre-selects this skin and hides the skin picker in the built-in controls. */
+  lockedSkin?: string
   spineVersion: string
   assetName: string
   onDownload: () => void
@@ -30,6 +32,7 @@ export function SpinePlayer({
   atlasUrl,
   animations,
   skins,
+  lockedSkin,
   spineVersion,
   assetName,
   onDownload,
@@ -79,7 +82,8 @@ export function SpinePlayer({
           // Omit when unknown → player auto-selects the first animation/skin;
           // its built-in controls (showControls) let the user switch.
           animation: animations?.[0] || undefined,
-          skin: skins?.[0] || undefined,
+          // lockedSkin takes priority; otherwise fall back to first skin hint.
+          skin: lockedSkin || skins?.[0] || undefined,
           showControls: true,
           backgroundColor: '#1a1a2e',
           premultipliedAlpha: true,
@@ -95,7 +99,7 @@ export function SpinePlayer({
     })
 
     return () => { cancelled = true }
-  }, [skeletonUrl, atlasUrl, animations, skins, spineVersion])
+  }, [skeletonUrl, atlasUrl, animations, skins, lockedSkin, spineVersion])
 
   return (
     <div className="flex flex-col gap-4">
