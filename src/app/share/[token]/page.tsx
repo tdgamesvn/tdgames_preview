@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isInternalNetworkRequest } from '@/lib/share-access'
 import { getPublicUrl } from '@/lib/r2'
 import { PortalCharacterGrid, type CharacterCardData } from '@/components/portal/portal-character-grid'
 import { CommentsDrawer } from '@/components/portal/comments-drawer'
@@ -19,6 +20,20 @@ export default async function SharePage({ params }: Props) {
     .single()) as { data: PrvProject | null }
 
   if (!project) notFound()
+
+  // IP restriction: when share_internal_only is on, only allow company network
+  if (project.share_internal_only && !isInternalNetworkRequest()) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
+        <span className="text-5xl">🔒</span>
+        <h1 className="text-xl font-black uppercase tracking-wider text-white">Access Restricted</h1>
+        <p className="text-sm max-w-sm" style={{ color: '#666' }}>
+          This preview is only available on the internal company network.
+          Please connect via VPN or office Wi-Fi and try again.
+        </p>
+      </div>
+    )
+  }
 
   const { data: tasks } = (await admin
     .from('Prv_tasks')
