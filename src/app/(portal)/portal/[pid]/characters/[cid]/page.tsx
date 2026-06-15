@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { getPublicUrl } from '@/lib/r2'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ShowcaseHero } from '@/components/portal/showcase-hero'
 import { ArtFilmstrip } from '@/components/portal/art-filmstrip'
 import { SectionHeader } from '@/components/portal/section-header'
 import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
@@ -75,33 +74,6 @@ export default async function PortalCharacterPage({
   }))
   const vfxCards = vfxWithUrls.filter(a => a.presignedUrl)
 
-  // Spine hero config (avatar asset + spine_version)
-  let spineHeroConfig:
-    | { jsonUrl: string; atlasUrl: string; animationName: string; spineVersion: string; spineAvatarBg: string }
-    | undefined
-
-  if (task.avatar_asset_id && project.spine_version) {
-    const { data: spineAsset } = (await supabase
-      .from('Prv_assets')
-      .select('name')
-      .eq('id', task.avatar_asset_id)
-      .single()) as { data: Pick<PrvAsset, 'name'> | null }
-
-    if (spineAsset) {
-      const base = spineAsset.name.replace(/\.[^./]+$/, '')
-      spineHeroConfig = {
-        jsonUrl:       `/api/spine/${task.id}/${encodeURIComponent(spineAsset.name)}`,
-        atlasUrl:      `/api/spine/${task.id}/${encodeURIComponent(`${base}.atlas`)}`,
-        animationName: task.avatar_animation ?? '',
-        spineVersion:  project.spine_version,
-        spineAvatarBg: project.card_bg_type === 'color' && project.card_bg_value ? project.card_bg_value : '#00000000',
-      }
-    }
-  }
-
-  // First art URL as hero fallback (when no Spine avatar)
-  const heroArtUrl = filmstripAssets[0]?.presignedUrl
-
   // Animation gallery: find json + atlas pair in animAssets
   const jsonAnim = animAssets.find(a => a.name.endsWith('.json'))
   const atlasAnim = jsonAnim
@@ -133,13 +105,6 @@ export default async function PortalCharacterPage({
           {project.name}
         </p>
       </div>
-
-      {/* Zone A — full-bleed Spine/Art hero */}
-      <ShowcaseHero
-        characterName={task.name}
-        spineConfig={spineHeroConfig}
-        artUrl={!spineHeroConfig ? heroArtUrl : undefined}
-      />
 
       {/* Zones B–E — padded content */}
       <div className="space-y-12 mt-10">

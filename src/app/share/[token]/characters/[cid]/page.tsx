@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getPublicUrl } from '@/lib/r2'
-import { ShowcaseHero } from '@/components/portal/showcase-hero'
 import { ArtFilmstrip } from '@/components/portal/art-filmstrip'
 import { SectionHeader } from '@/components/portal/section-header'
 import { SpineAnimationGallery } from '@/components/dashboard/spine-animation-gallery'
@@ -60,39 +59,11 @@ export default async function ShareCharacterPage({ params }: Props) {
     .map(a => ({ id: a.id, name: a.name, fileType: a.file_type, presignedUrl: getPublicUrl(a.r2_key) }))
     .filter(a => a.presignedUrl)
 
-  // Spine hero config
-  let spineHeroConfig:
-    | { jsonUrl: string; atlasUrl: string; animationName: string; spineVersion: string; spineAvatarBg: string }
-    | undefined
-
-  if (task.avatar_asset_id && project.spine_version) {
-    const { data: spineAsset } = (await admin
-      .from('Prv_assets')
-      .select('name')
-      .eq('id', task.avatar_asset_id)
-      .single()) as { data: Pick<PrvAsset, 'name'> | null }
-
-    if (spineAsset) {
-      const base = spineAsset.name.replace(/\.[^./]+$/, '')
-      spineHeroConfig = {
-        jsonUrl:       `${spineApiBase}/${task.id}/${encodeURIComponent(spineAsset.name)}`,
-        atlasUrl:      `${spineApiBase}/${task.id}/${encodeURIComponent(`${base}.atlas`)}`,
-        animationName: task.avatar_animation ?? '',
-        spineVersion:  project.spine_version,
-        spineAvatarBg: project.card_bg_type === 'color' && project.card_bg_value
-          ? project.card_bg_value
-          : '#00000000',
-      }
-    }
-  }
-
   // Animation gallery: json + atlas pair
   const jsonAnim  = animAssets.find(a => a.name.endsWith('.json'))
   const atlasAnim = jsonAnim
     ? animAssets.find(a => a.name.endsWith('.atlas') && a.name.startsWith(jsonAnim.name.replace('.json', '')))
     : undefined
-
-  const heroArtUrl = filmstripAssets[0]?.presignedUrl
 
   return (
     <div>
@@ -117,13 +88,6 @@ export default async function ShareCharacterPage({ params }: Props) {
           {project.name}
         </p>
       </div>
-
-      {/* Zone A — Spine / Art hero */}
-      <ShowcaseHero
-        characterName={task.name}
-        spineConfig={spineHeroConfig}
-        artUrl={!spineHeroConfig ? heroArtUrl : undefined}
-      />
 
       {/* Zones B–D — content sections */}
       <div className="space-y-12 mt-10">
