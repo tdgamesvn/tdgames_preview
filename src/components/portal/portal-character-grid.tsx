@@ -44,13 +44,13 @@ export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {showSearch && (
-        <div className="relative">
+        <div className="relative max-w-xs sm:max-w-sm">
           <Search
             size={13}
             className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: '#444' }}
+            style={{ color: '#555' }}
           />
           <input
             type="text"
@@ -59,21 +59,29 @@ export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue
             placeholder="Search characters..."
             className="w-full pl-8 pr-4 py-2.5 rounded-xl text-sm text-white outline-none"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              transition: 'border-color 200ms ease',
             }}
+            onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,149,0,0.4)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)')}
           />
         </div>
       )}
 
       {filtered.length === 0 && query && (
-        <p className="text-xs text-center py-8" style={{ color: '#444' }}>
+        <p className="text-xs text-center py-12" style={{ color: '#444' }}>
           No characters match &ldquo;{query}&rdquo;
         </p>
       )}
 
-      {/* Grid — only PAGE_SIZE cards rendered at once */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+      {/*
+        Grid — responsive columns and gaps.
+        Mobile:  2 cols, gap-3  (compact but readable)
+        Tablet:  3 cols, gap-4
+        Desktop: 4 cols, gap-5
+      */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6">
         {paginated.map(({ task, artUrl, spineConfig }) => (
           <CharacterCardItem
             key={task.id}
@@ -89,22 +97,22 @@ export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue
 
       {/* Pagination controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 pt-2">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 pt-4">
           <button
             onClick={() => goTo(safePage - 1)}
             disabled={safePage === 0}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.09)',
-              color: '#aaa',
+              color: '#999',
             }}
           >
             <ChevronLeft size={13} />
-            Prev
+            <span className="hidden sm:inline">Prev</span>
           </button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
@@ -112,8 +120,10 @@ export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue
                 className="w-7 h-7 rounded-lg text-[11px] font-black transition-all"
                 style={{
                   background: i === safePage ? 'rgba(255,149,0,0.15)' : 'rgba(255,255,255,0.04)',
-                  border: i === safePage ? '1px solid rgba(255,149,0,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                  border: i === safePage ? '1px solid rgba(255,149,0,0.45)' : '1px solid rgba(255,255,255,0.07)',
                   color: i === safePage ? '#FF9500' : '#555',
+                  transform: i === safePage ? 'scale(1.08)' : 'scale(1)',
+                  transition: 'all 200ms ease',
                 }}
               >
                 {i + 1}
@@ -124,14 +134,14 @@ export function PortalCharacterGrid({ cards, linkPrefix, cardBgType, cardBgValue
           <button
             onClick={() => goTo(safePage + 1)}
             disabled={safePage >= totalPages - 1}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all disabled:opacity-25 disabled:cursor-not-allowed"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.09)',
-              color: '#aaa',
+              color: '#999',
             }}
           >
-            Next
+            <span className="hidden sm:inline">Next</span>
             <ChevronRight size={13} />
           </button>
         </div>

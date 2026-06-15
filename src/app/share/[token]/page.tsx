@@ -75,23 +75,53 @@ export default async function SharePage({ params }: Props) {
   )
 
   return (
-    <div className="space-y-6">
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">
+    <div className="space-y-8">
+
+      {/* ── Page header ── */}
+      <div
+        className="flex items-start justify-between gap-4 pb-7"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        <div className="space-y-2 min-w-0">
+          <h1
+            className="font-black uppercase tracking-wider text-white leading-none truncate"
+            style={{ fontSize: 'clamp(18px, 3.5vw, 30px)', letterSpacing: '0.06em' }}
+          >
             {project.name}
           </h1>
           {project.description && (
-            <p className="text-sm" style={{ color: '#666' }}>{project.description}</p>
+            <p
+              className="text-sm leading-relaxed"
+              style={{ color: '#666', maxWidth: '54ch' }}
+            >
+              {project.description}
+            </p>
           )}
-          <p className="text-[10px] uppercase tracking-widest" style={{ color: '#444' }}>
-            {taskList.length} character{taskList.length !== 1 ? 's' : ''}
-          </p>
+          <div className="flex items-center gap-2 pt-0.5">
+            <span
+              className="inline-flex items-center font-black uppercase tracking-widest rounded"
+              style={{
+                fontSize: '9px',
+                letterSpacing: '0.15em',
+                padding: '2px 8px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                color: '#555',
+              }}
+            >
+              {taskList.length} character{taskList.length !== 1 ? 's' : ''}
+            </span>
+          </div>
         </div>
-        {(project.allow_comments ?? true) && <CommentsDrawer projectId={project.id} />}
+
+        {(project.allow_comments ?? true) && (
+          <div className="shrink-0 pt-1">
+            <CommentsDrawer projectId={project.id} />
+          </div>
+        )}
       </div>
 
+      {/* ── Content ── */}
       {taskList.length === 0 ? (
         <div
           className="rounded-2xl flex flex-col items-center justify-center py-24 text-center"
