@@ -111,6 +111,7 @@ export function AssetGridClient({
                   spineVersion={spineVersion}
                   cardBgType={cardBgType}
                   cardBgValue={cardBgValue}
+                  lockedSkin={projectDefaultSkin ?? undefined}
                 />
                 {/* Source files — always expanded, Delete All in header row */}
                 <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>

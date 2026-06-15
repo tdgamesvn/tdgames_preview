@@ -14,6 +14,8 @@ interface SpineAnimationGalleryProps {
   /** Project-level card background */
   cardBgType?: 'color' | 'image'
   cardBgValue?: string
+  /** When set, pre-selects this skin and hides the skin picker so it cannot be changed. */
+  lockedSkin?: string | null
 }
 
 /**
@@ -30,13 +32,14 @@ export function SpineAnimationGallery({
   spineApiBase = '/api/spine',
   cardBgType,
   cardBgValue,
+  lockedSkin,
 }: SpineAnimationGalleryProps) {
   const jsonUrl = `${spineApiBase}/${taskId}/${encodeURIComponent(jsonName)}`
   const atlasUrl = `${spineApiBase}/${taskId}/${encodeURIComponent(atlasName)}`
 
   const [animations, setAnimations] = useState<string[]>([])
   const [skins, setSkins] = useState<string[]>([])
-  const [skin, setSkin] = useState<string>('')
+  const [skin, setSkin] = useState<string>(lockedSkin ?? '')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   // Track which animation cells failed to render, with optional error message.
   const [cellErrors, setCellErrors] = useState<Record<string, string | true>>({})
@@ -88,8 +91,8 @@ export function SpineAnimationGallery({
       {/* Controls: pill buttons for background + skin */}
       {/* Controls: skin pills (background is now project-level) */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Skin pills */}
-        {realSkins.length > 0 && (
+        {/* Skin pills — hidden when skin is locked by project settings */}
+        {realSkins.length > 0 && !lockedSkin && (
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setSkin('')}

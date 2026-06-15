@@ -148,6 +148,7 @@ export default async function ShareCharacterPage({ params }: Props) {
               spineApiBase={spineApiBase}
               cardBgType={project.card_bg_type}
               cardBgValue={project.card_bg_value}
+              lockedSkin={project.default_skin}
             />
           </section>
         )}

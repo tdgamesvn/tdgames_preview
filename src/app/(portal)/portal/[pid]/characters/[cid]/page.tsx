@@ -163,6 +163,7 @@ export default async function PortalCharacterPage({
               spineVersion={project.spine_version}
               cardBgType={project.card_bg_type}
               cardBgValue={project.card_bg_value}
+              lockedSkin={project.default_skin}
             />
           </section>
         )}
