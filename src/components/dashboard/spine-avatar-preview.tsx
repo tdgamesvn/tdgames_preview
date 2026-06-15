@@ -44,36 +44,6 @@ function getScriptUrl(version: string) {
  */
 const spineScriptPromises: Partial<Record<string, Promise<void>>> = {}
 
-/**
- * Global WebGL context semaphore.
- * Browsers cap WebGL contexts (~8 on Firefox/Safari, ~16 on Chrome).
- * Characters with many animations (7+) plus the AvatarConfigPanel preview
- * can hit the limit, causing context loss and scrambled textures.
- * Cap at 6 to leave headroom for the avatar preview + other tabs.
- */
-const MAX_WEBGL_CONTEXTS = 6
-let activeWebGLContexts = 0
-const contextWaitQueue: Array<() => void> = []
-
-function acquireWebGLContext(): Promise<void> {
-  if (activeWebGLContexts < MAX_WEBGL_CONTEXTS) {
-    activeWebGLContexts++
-    return Promise.resolve()
-  }
-  return new Promise(resolve => {
-    contextWaitQueue.push(() => {
-      activeWebGLContexts++
-      resolve()
-    })
-  })
-}
-
-function releaseWebGLContext() {
-  activeWebGLContexts = Math.max(0, activeWebGLContexts - 1)
-  const next = contextWaitQueue.shift()
-  if (next) next()
-}
-
 function ensureSpineScript(version: string): Promise<void> {
   const scriptId = `spine-js-${version}`
   if (spineScriptPromises[scriptId]) return spineScriptPromises[scriptId]
@@ -182,14 +152,6 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
       async function init() {
         if (cancelled) return
 
-        // Acquire a WebGL context slot before initialising the player.
-        // If the limit is reached, this awaits until another cell disposes.
-        await acquireWebGLContext()
-        if (cancelled) {
-          releaseWebGLContext()
-          return
-        }
-
         // Catch uncaught Spine runtime errors (e.g. "Region not found in atlas")
         // that are thrown inside requestAnimationFrame and bypass both try/catch
         // and the SpinePlayer's error callback.
@@ -284,7 +246,6 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
           // Note: SpinePlayer handles backgroundColor via its own CSS —
           // we pass the project bg color directly and let it render natively.
         } catch (err) {
-          releaseWebGLContext()
           if (!cancelled && !errorFired) {
             errorFired = true
             onErrorRef.current?.(err instanceof Error ? err.message : 'Spine init failed')
@@ -300,16 +261,13 @@ export const SpineAvatarPreview = forwardRef<SpineAvatarPreviewHandle, SpineAvat
         observer.disconnect()
         // Reset so effect re-runs on prop changes can re-initialize
         initializedRef.current = false
-        // Dispose the player and release its WebGL context slot
-        if (playerInstanceRef.current) {
-          try {
-            playerInstanceRef.current.dispose?.()
-          } catch {
-            /* ignore disposal errors */
-          }
-          playerInstanceRef.current = null
-          releaseWebGLContext()
+        // Dispose the player to release WebGL context
+        try {
+          playerInstanceRef.current?.dispose?.()
+        } catch {
+          /* ignore disposal errors */
         }
+        playerInstanceRef.current = null
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jsonUrl, atlasUrl, animationName, skinName, autoFit, backgroundColor, spineVersion])
