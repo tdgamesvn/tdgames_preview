@@ -46,8 +46,8 @@ export function AssetGridClient({
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
   readonly = false,
   presignedUrls = {},
-  cardBgType,
-  cardBgValue,
+  cardBgType: _cardBgType, // eslint-disable-line @typescript-eslint/no-unused-vars
+  cardBgValue: _cardBgValue, // eslint-disable-line @typescript-eslint/no-unused-vars
   projectDefaultSkin,
 }: AssetGridClientProps) {
   const router = useRouter()
