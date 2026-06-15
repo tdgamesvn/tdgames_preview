@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { AssetGridClient } from '@/components/dashboard/asset-grid-client'
 import type { PrvAsset } from '@/lib/types/database'
 
-// Mock SpineAnimationGallery so we can assert it's NOT used
+// Mock SpineAnimationGallery (canvas/WebGL not available in jsdom)
 jest.mock('@/components/dashboard/spine-animation-gallery', () => ({
   SpineAnimationGallery: () => <div data-testid="spine-gallery">SpineGallery</div>,
 }))
@@ -30,8 +30,8 @@ const makeAsset = (overrides: Partial<PrvAsset> = {}): PrvAsset => ({
   ...overrides,
 })
 
-describe('AssetGridClient — animation tab (Change 1)', () => {
-  it('does NOT render SpineAnimationGallery for animation assets', () => {
+describe('AssetGridClient — animation tab', () => {
+  it('renders SpineAnimationGallery for animation assets with a json file', () => {
     render(
       <AssetGridClient
         assets={[makeAsset()]}
@@ -40,7 +40,7 @@ describe('AssetGridClient — animation tab (Change 1)', () => {
         projectId="proj-1"
       />
     )
-    expect(screen.queryByTestId('spine-gallery')).not.toBeInTheDocument()
+    expect(screen.getByTestId('spine-gallery')).toBeInTheDocument()
   })
 
   it('shows all source file names in animation tab', () => {
