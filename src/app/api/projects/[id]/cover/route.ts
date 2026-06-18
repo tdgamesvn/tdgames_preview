@@ -14,7 +14,7 @@ function getR2Client() {
   })
 }
 
-async function getInternalUser(request: NextRequest) {
+async function getInternalUser(_request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = (await createClient()) as any
   const { data: { user } } = await supabase.auth.getUser()
