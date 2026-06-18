@@ -42,6 +42,8 @@ export interface PrvProject {
   share_internal_only: boolean
   /** Comma-separated allowed IPs for internal-only share. Managed via dashboard UI. */
   share_allowed_ips: string | null
+  /** R2 key of the portal cover image. NULL = fallback to first Art asset. */
+  cover_r2_key: string | null
   created_at: string
 }
 
