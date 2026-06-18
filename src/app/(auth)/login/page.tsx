@@ -4,61 +4,15 @@ export default function LoginPage() {
   return (
     <>
       <style>{`
-        @keyframes grid-pulse {
-          0%, 100% { opacity: 0.25; }
-          50% { opacity: 0.55; }
-        }
-        @keyframes scan {
-          0% { top: -2px; }
-          100% { top: 100%; }
-        }
-        @keyframes diamond-spin {
-          from { transform: rotate(45deg); }
-          to { transform: rotate(405deg); }
-        }
         @keyframes fade-up {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes amber-glow {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-        .login-grid-bg {
-          background-color: #030810;
-          background-image:
-            linear-gradient(rgba(255,149,0,0.07) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,149,0,0.07) 1px, transparent 1px);
-          background-size: 48px 48px;
-          animation: grid-pulse 5s ease-in-out infinite;
-        }
-        .scanline {
-          position: absolute;
-          left: 0; right: 0;
-          height: 120px;
-          background: linear-gradient(to bottom, transparent, rgba(255,149,0,0.04), transparent);
-          animation: scan 8s linear infinite;
-          pointer-events: none;
-        }
-        .diamond-outer {
-          width: 120px; height: 120px;
-          border: 1px solid rgba(255,149,0,0.35);
-          transform: rotate(45deg);
-          position: relative;
-          animation: diamond-spin 24s linear infinite;
-        }
-        .diamond-inner {
-          position: absolute;
-          inset: 20px;
-          border: 1px solid rgba(255,149,0,0.15);
-          background: rgba(255,149,0,0.05);
         }
         .fu1 { animation: fade-up 0.5s ease forwards 0.05s; opacity: 0; }
         .fu2 { animation: fade-up 0.5s ease forwards 0.15s; opacity: 0; }
         .fu3 { animation: fade-up 0.5s ease forwards 0.28s; opacity: 0; }
         .fu4 { animation: fade-up 0.5s ease forwards 0.42s; opacity: 0; }
         .fu5 { animation: fade-up 0.5s ease forwards 0.55s; opacity: 0; }
-        .amber-dot { animation: amber-glow 2.5s ease-in-out infinite; }
         .dark-input {
           width: 100%;
           background: rgba(255,255,255,0.04);
@@ -128,132 +82,7 @@ export default function LoginPage() {
           display: 'flex',
         }}
       >
-        {/* ── Left decorative panel ── */}
-        <div
-          style={{
-            flex: 1,
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'none',
-          }}
-          className="lg:block"
-        >
-          {/* Animated grid */}
-          <div className="login-grid-bg" style={{ position: 'absolute', inset: 0 }} />
-          <div className="scanline" />
-
-          {/* Inner frame */}
-          <div style={{
-            position: 'absolute',
-            top: 48, left: 48, right: 48, bottom: 48,
-            border: '1px solid rgba(255,149,0,0.12)',
-          }} />
-          <div style={{
-            position: 'absolute',
-            top: 56, left: 56, right: 56, bottom: 56,
-            border: '1px solid rgba(255,149,0,0.05)',
-          }} />
-
-          {/* Corner accent dots */}
-          {[
-            { top: 45, left: 45 }, { top: 45, right: 45 },
-            { bottom: 45, left: 45 }, { bottom: 45, right: 45 },
-          ].map((pos, i) => (
-            <div key={i} style={{
-              position: 'absolute', ...pos,
-              width: 6, height: 6,
-              background: 'rgba(255,149,0,0.6)',
-              borderRadius: 1,
-            }} />
-          ))}
-
-          {/* Center content */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '80px 64px',
-            textAlign: 'center',
-          }}>
-            {/* Animated diamond */}
-            <div style={{ marginBottom: 52 }}>
-              <div className="diamond-outer">
-                <div className="diamond-inner" />
-              </div>
-            </div>
-
-            <div style={{
-              fontSize: 10,
-              letterSpacing: '0.35em',
-              color: 'rgba(255,149,0,0.75)',
-              textTransform: 'uppercase',
-              fontWeight: 800,
-              marginBottom: 14,
-            }}>
-              TDGAME STUDIO
-            </div>
-
-            <div style={{
-              fontSize: 52,
-              fontWeight: 900,
-              color: '#F2F2F2',
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
-              marginBottom: 18,
-            }}>
-              Preview<br />Portal
-            </div>
-
-            <div style={{
-              fontSize: 14,
-              color: 'rgba(157,156,157,0.6)',
-              lineHeight: 1.7,
-              maxWidth: 260,
-            }}>
-              Secure access for reviewing<br />
-              Art, Animation &amp; VFX deliverables
-            </div>
-
-            {/* Service tags */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 36 }}>
-              {['ART', 'ANIMATION', 'VFX'].map(tag => (
-                <span key={tag} style={{
-                  padding: '4px 10px',
-                  border: '1px solid rgba(255,149,0,0.2)',
-                  borderRadius: 4,
-                  fontSize: 9,
-                  letterSpacing: '0.2em',
-                  fontWeight: 800,
-                  color: 'rgba(255,149,0,0.6)',
-                }}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom status */}
-          <div style={{
-            position: 'absolute', bottom: 36, left: 64,
-            fontSize: 10,
-            color: 'rgba(157,156,157,0.35)',
-            letterSpacing: '0.1em',
-            lineHeight: 2,
-          }}>
-            <div>SYS // PREVIEW-PORTAL-v1.0</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="amber-dot" style={{
-                width: 5, height: 5,
-                borderRadius: '50%',
-                background: '#FF9500',
-                display: 'inline-block',
-              }} />
-              <span style={{ color: 'rgba(255,149,0,0.55)' }}>SECURE CONNECTION</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Right form panel ── */}
+        {/* ── Left form panel ── */}
         <div style={{
           width: '100%',
           maxWidth: 460,
@@ -313,6 +142,43 @@ export default function LoginPage() {
           }}>
             Confidential · Authorized Access Only
           </div>
+        </div>
+
+        {/* ── Right video panel ── */}
+        <div
+          className="hidden lg:block"
+          style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#000' }}
+        >
+          {/* Looping background video */}
+          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          >
+            <source
+              src="https://cdn.tdgamestudio.com/projects/2026/05/eb574720-923c-4ad0-abe3-c45320b9359a-final_loop_7s.mp4"
+              type="video/mp4"
+            />
+          </video>
+
+          {/* Black overlay 30% */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: '#000',
+              opacity: 0.3,
+            }}
+          />
         </div>
       </main>
     </>
