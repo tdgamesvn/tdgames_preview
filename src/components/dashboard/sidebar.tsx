@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, LogOut, ChevronRight, Zap, X } from 'lucide-react'
+import { LayoutDashboard, Users, LogOut, ChevronRight, X } from 'lucide-react'
 import type { PrvClient } from '@/lib/types/database'
 
 interface SidebarProps {
@@ -31,12 +31,8 @@ export function Sidebar({ clients, onClose }: SidebarProps) {
           style={{ background: 'radial-gradient(circle, rgba(255,149,0,0.12) 0%, transparent 70%)' }}
         />
         <div className="flex items-center gap-2.5 relative flex-1 min-w-0">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #FF9500, #FF6B00)', boxShadow: '0 2px 8px rgba(255,149,0,0.35)' }}
-          >
-            <Zap size={13} className="text-white fill-white" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="TDGame Studio" className="w-7 h-7 object-contain flex-shrink-0" />
           <div className="min-w-0">
             <div className="text-xs font-bold tracking-wide text-white">TDGame</div>
             <div className="text-[9px] font-medium truncate" style={{ color: '#666' }}>

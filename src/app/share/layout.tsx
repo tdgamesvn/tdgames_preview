@@ -28,12 +28,7 @@ export default function ShareLayout({ children }: { children: React.ReactNode })
         }}
       >
         <div className="flex items-center gap-2.5">
-          <span
-            className="font-black uppercase tracking-widest text-white"
-            style={{ fontSize: 'clamp(10px, 1.5vw, 13px)', letterSpacing: '0.18em' }}
-          >
-            TDGAME
-          </span>
+          <img src="/logo.png" alt="TDGame Studio" className="w-7 h-7 object-contain flex-shrink-0" />
           <span
             className="font-black uppercase tracking-widest rounded"
             style={{

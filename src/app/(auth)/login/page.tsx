@@ -278,15 +278,8 @@ export default function LoginPage() {
           <div style={{ width: '100%', maxWidth: 340 }}>
             {/* Header */}
             <div className="fu1" style={{ marginBottom: 36 }}>
-              <div style={{
-                fontSize: 10,
-                letterSpacing: '0.3em',
-                color: 'rgba(255,149,0,0.8)',
-                textTransform: 'uppercase',
-                fontWeight: 800,
-                marginBottom: 10,
-              }}>
-                TDGAME STUDIO
+              <div style={{ marginBottom: 14 }}>
+                <img src="/logo.png" alt="TDGame Studio" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               </div>
               <div style={{
                 fontSize: 30,

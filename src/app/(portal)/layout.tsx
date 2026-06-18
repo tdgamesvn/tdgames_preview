@@ -42,7 +42,7 @@ export default async function PortalLayout({
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(8,8,8,0.95)' }}
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black uppercase tracking-widest text-white">TDGAME</span>
+          <img src="/logo.png" alt="TDGame Studio" className="w-6 h-6 object-contain flex-shrink-0" />
           <span
             className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded"
             style={{ background: 'rgba(255,149,0,0.1)', color: '#FF9500' }}

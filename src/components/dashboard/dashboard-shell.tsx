@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Zap } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { Sidebar } from './sidebar'
 import type { PrvClient } from '@/lib/types/database'
 
@@ -79,12 +79,8 @@ export function DashboardShell({ clients, children }: DashboardShellProps) {
             <Menu size={17} />
           </button>
           <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #FF9500, #FF6B00)' }}
-            >
-              <Zap size={11} className="text-white fill-white" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="TDGame Studio" className="w-6 h-6 object-contain" />
             <span className="text-sm font-bold text-white">TDGame</span>
           </div>
         </header>
