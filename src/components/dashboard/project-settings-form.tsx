@@ -34,6 +34,9 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   const [cardBgType,   setCardBgType]   = useState<'color' | 'image'>(project.card_bg_type ?? 'color')
   const [cardBgValue,  setCardBgValue]  = useState(project.card_bg_value ?? '#3a3a3aff')
   const [bgUploading,  setBgUploading]  = useState(false)
+  const [coverR2Key,    setCoverR2Key]    = useState<string | null>(project.cover_r2_key ?? null)
+  const [coverUploading, setCoverUploading] = useState(false)
+  const [coverError,    setCoverError]    = useState<string | null>(null)
   const [saving,   setSaving]   = useState(false)
   const [saved,    setSaved]    = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -68,6 +71,42 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
       setCardBgType('image')
       setCardBgValue(publicUrl)
     }
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setCoverUploading(true)
+    setCoverError(null)
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch(`/api/projects/${project.id}/cover`, {
+      method: 'POST',
+      body: formData,
+    })
+    setCoverUploading(false)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setCoverError(json.error ?? 'Upload failed')
+      return
+    }
+    const json = await res.json()
+    setCoverR2Key(json.r2_key)
+    // Reset input so same file can be re-uploaded if needed
+    e.target.value = ''
+  }
+
+  async function handleCoverRemove() {
+    setCoverUploading(true)
+    setCoverError(null)
+    const res = await fetch(`/api/projects/${project.id}/cover`, { method: 'DELETE' })
+    setCoverUploading(false)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setCoverError(json.error ?? 'Remove failed')
+      return
+    }
+    setCoverR2Key(null)
   }
 
   async function handleSave() {
@@ -185,6 +224,86 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
         />
         <p className="text-xs" style={{ color: '#444' }}>
           Locks this skin in the animation preview modal (exact Spine skin name)
+        </p>
+      </div>
+
+      {/* ── Portal Cover ──────────────────────────────── */}
+      <div className="space-y-3">
+        <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: '#666' }}>
+          Portal Cover
+        </label>
+
+        {/* 16:9 preview */}
+        <div
+          className="w-full rounded-xl overflow-hidden"
+          style={{
+            aspectRatio: '16/9',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: coverR2Key
+              ? undefined
+              : 'linear-gradient(135deg, rgba(255,149,0,0.06) 0%, rgba(255,149,0,0.02) 50%, #080808 100%)',
+            position: 'relative',
+          }}
+        >
+          {coverR2Key && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${coverR2Key}`}
+              alt="Cover preview"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+          )}
+          {!coverR2Key && (
+            <span
+              style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: '2rem', opacity: 0.15, userSelect: 'none',
+              }}
+            >
+              🖼
+            </span>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <label
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all"
+            style={{
+              background: coverUploading ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: coverUploading ? '#555' : '#aaa',
+              pointerEvents: coverUploading ? 'none' : undefined,
+            }}
+          >
+            {coverUploading ? 'Uploading…' : '📷 Upload Cover'}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+              disabled={coverUploading}
+            />
+          </label>
+          {coverR2Key && !coverUploading && (
+            <button
+              type="button"
+              onClick={handleCoverRemove}
+              className="text-xs"
+              style={{ color: '#EF4444' }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+
+        {coverError && (
+          <p className="text-xs font-medium" style={{ color: '#EF4444' }}>{coverError}</p>
+        )}
+
+        <p className="text-xs" style={{ color: '#444' }}>
+          Shown on the project card in the client portal
         </p>
       </div>
 
