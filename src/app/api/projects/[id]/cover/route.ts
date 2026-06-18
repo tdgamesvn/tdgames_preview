@@ -14,7 +14,7 @@ function getR2Client() {
   })
 }
 
-async function getInternalUser(_request: NextRequest) {
+async function getInternalUser() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = (await createClient()) as any
   const { data: { user } } = await supabase.auth.getUser()
@@ -29,7 +29,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { user, error } = await getInternalUser(request)
+  const { user, error } = await getInternalUser()
   if (error === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === 'Forbidden' || !user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -63,7 +63,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { user, error } = await getInternalUser(request)
+  const { user, error } = await getInternalUser()
   if (error === 'Unauthorized') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === 'Forbidden' || !user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 

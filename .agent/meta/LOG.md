@@ -1,5 +1,17 @@
 # Activity Log — tdgames_preview
 
+## 2026-06-15 (default_skin + lockedSkin full fix)
+- Bug: `lockedSkin` chỉ wire vào `SpinePlayer` (modal) nhưng user nhìn thấy `SpineAnimationGallery` có skin picker riêng → skin không bị lock
+- Fix: thêm `lockedSkin` prop vào `SpineAnimationGallery` — init skin state từ prop, ẩn skin pill buttons khi locked
+- Wire `lockedSkin` ở 3 callsites: `AssetGridClient` (dashboard animation tab), portal character page, share character page
+- 82/82 tests pass, ESLint clean, pushed commit `ec38619`
+
+## 2026-06-15 (default_skin + SpineAnimationGallery revert)
+- TDD: viết 5 tests mới (asset-grid-client × 2, project-settings-form × 3)
+- Change 2 (giữ lại): thêm `default_skin TEXT` column vào `Prv_projects` (migration applied via Supabase MCP), type `PrvProject`, action `updateProject` Pick, `ProjectSettingsForm` input mới, `SpinePlayer.lockedSkin` prop, thread qua `AssetViewerModal` → `AssetGridClient` → `AssetGrid` → character page
+- Change 1 (revert): đã xóa `SpineAnimationGallery` khỏi dashboard animation tab nhưng user báo spine preview biến mất → revert lại, gallery được khôi phục
+- 82/82 tests pass, ESLint clean, pushed to GitHub (commit c7bc245)
+
 ## 2026-06-13 (Client Account Management)
 - TDD: viết 8 tests trước → implement `createClientAccount`, `updateClientAccountPassword`, `deleteClientAccount` trong `src/lib/actions/client-accounts.ts`
 - Actions dùng `createAdminClient()` (service role): tạo Supabase Auth user với `email_confirm: true`, upsert `Prv_profiles`, rollback auth user nếu profile fail
