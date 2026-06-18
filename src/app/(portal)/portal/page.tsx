@@ -38,7 +38,7 @@ export default async function PortalPage() {
 
   const { data: projects } = (await supabase
     .from('Prv_projects')
-    .select('id, name, description, status, created_at, client_id')
+    .select('id, name, description, status, created_at, client_id, cover_r2_key')
     .eq('client_id', profile.client_id)
     .eq('status', 'active')
     .order('created_at', { ascending: false })) as { data: PrvProject[] | null }
@@ -62,7 +62,9 @@ export default async function PortalPage() {
           .limit(1) as Promise<{ data: Pick<PrvAsset, 'r2_key'>[] | null }>,
       ])
       let coverUrl: string | undefined
-      if (firstArt?.[0]?.r2_key) {
+      if (project.cover_r2_key) {
+        coverUrl = getPublicUrl(project.cover_r2_key)
+      } else if (firstArt?.[0]?.r2_key) {
         coverUrl = getPublicUrl(firstArt[0].r2_key)
       }
       return { project, characterCount: count ?? 0, coverUrl }
